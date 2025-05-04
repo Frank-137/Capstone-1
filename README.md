@@ -1,75 +1,54 @@
-<<<<<<< HEAD
-# Welcome to your Lovable project
+# Globes of History Unveiled
 
-## Project info
+An interactive educational platform for exploring the pivotal events of World Wars and related history through a 3D globe, timeline, and relationship graphs.
 
-**URL**: https://lovable.dev/projects/11a2d2a3-0e3a-4d0d-a50a-b5239ecbbcd6
+## 🌍 Project Overview
+Globes of History Unveiled makes learning about major historical events engaging and visual. Users can explore events on a 3D globe, filter by time period and event type, and see how events are interconnected.
 
-## How can I edit this code?
+## ✨ Features
+- **Interactive 3D Globe**: Visualize historical events as pins on a globe.
+- **Timeline Navigation**: Explore events year by year with a timeline slider.
+- **Event Relationship Graphs**: See connections between events with network visualizations.
+- **Advanced Filtering**: Filter by time period (World War I, Interwar, World War II) and event type (Battles, Treaties, Political, Economic).
+- **Colorful, Accessible UI**: Each filter and event type uses distinct, accessible colors for clarity.
+- **Responsive Design**: Works on desktop and mobile.
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
+- **React** + **Vite** (frontend framework)
+- **TypeScript** (type safety)
+- **Tailwind CSS** (utility-first styling)
+- **shadcn-ui** (UI components)
+- **D3.js** (data visualizations)
+- **Three.js** (3D globe rendering)
 
-**Use Lovable**
+## 🚀 Getting Started
+1. **Clone the repository:**
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd <YOUR_PROJECT_NAME>
+   ```
+2. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+3. **Start the development server:**
+   ```sh
+   npm run dev
+   ```
+4. **Open your browser:**
+   Visit `http://localhost:8081` (or the port shown in your terminal)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/11a2d2a3-0e3a-4d0d-a50a-b5239ecbbcd6) and start prompting.
+## 👥 Team Members
+- Piriyakorn Srisook 66090500414
+- Wattanasuk Limchanyavong 66090500419
+- Thiraphat Panthong 66090500430
+- Teerapat Paitoon 66090500434
 
-Changes made via Lovable will be committed automatically to this repo.
+**Advisor:**
+- Dr. Warin Wattanapornprom
 
-**Use your preferred IDE**
+## 📄 License
+This project is for educational purposes.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/11a2d2a3-0e3a-4d0d-a50a-b5239ecbbcd6) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-=======
+---
+Feel free to contribute or suggest improvements!
