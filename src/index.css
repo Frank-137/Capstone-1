@@ -64,7 +64,7 @@
   }
   
   .timeline-tick {
-    @apply w-1 h-4 bg-white/50 absolute transform -translate-x-1/2;
+    @apply w-1 h-4 bg-white/20 absolute transform -translate-x-1/2;
   }
   
   .timeline-year {
