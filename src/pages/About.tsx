@@ -125,61 +125,18 @@ const About = () => {
             <TabsContent value="members" className="mt-6">
               <Card>
                 <CardContent className="pt-6">
-                  <h2 className="text-2xl font-bold mb-4">Members</h2>
-                  <p className="text-lg mb-6">1. Piriyakorn Srisook 66090500414</p>
-                  <p className="text-lg mb-6">2. Wattanasuk Limchanyavong 66090500419</p>
-                  <p className="text-lg mb-6">3. Thiraphat Panthong 66090500430</p>
-                  <p className="text-lg mb-6">4. Teerapat Paitoon 66090500434</p>
-
-                  <h2 className="text-2xl font-bold mb-4">Advisor</h2>
-                  <p className="text-lg mb-6">• Dr. Warin Wattanapornprom</p>
-                  
-                  {/* <ul className="space-y-4">
-                    <li className="flex gap-3">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-900/20 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium">Advanced Clustering</h3>
-                        <p className="text-foreground/70">Improved event clustering algorithms to better visualize dense areas of historical activity.</p>
-                      </div>
-                    </li>
-                    <li className="flex gap-3">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-900/20 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium">Expanded Timeline</h3>
-                        <p className="text-foreground/70">Coverage of more historical periods beyond World Wars, including Cold War and modern conflicts.</p>
-                      </div>
-                    </li>
-                    <li className="flex gap-3">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-900/20 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium">Media Integration</h3>
-                        <p className="text-foreground/70">Incorporation of archival photos, videos, and audio recordings to enrich the historical context.</p>
-                      </div>
-                    </li>
-                    <li className="flex gap-3">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-900/20 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium">Customizable Experience</h3>
-                        <p className="text-foreground/70">User accounts to save favorite events, create custom timelines, and share discoveries.</p>
-                      </div>
-                    </li>
-                  </ul> */}
+                  <h2 className="text-3xl font-bold mb-6">Team Members</h2>
+                  <ol className="list-decimal list-inside space-y-2 text-lg mb-6">
+                    <li>Piriyakorn Srisook</li>
+                    <li>Wattanasuk Limchanyavong</li>
+                    <li>Thiraphat Panthong</li>
+                    <li>Teerapat Paitoon</li>
+                  </ol>
+                  <hr className="my-6 border-white/10" />
+                  <h3 className="text-3xl font-bold mb-6">Advisor</h3>
+                  <ul className="list-disc list-inside text-lg mb-6">
+                    <li>Dr. Warin Wattanapornprom</li>
+                  </ul>
                 </CardContent>
               </Card>
             </TabsContent>

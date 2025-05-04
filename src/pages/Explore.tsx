@@ -121,7 +121,7 @@ const Explore = () => {
             <div className="relative glass-panel border-none rounded-xl overflow-hidden" style={{ height: '60vh' }}>
               {viewMode === 'map' && (
                 <Globe 
-                  events={filteredEvents} 
+                  events={historicalEvents}
                   onSelectEvent={handleSelectEvent}
                   selectedEvent={selectedEvent}
                 />

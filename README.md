@@ -39,10 +39,10 @@ Globes of History Unveiled makes learning about major historical events engaging
    Visit `http://localhost:8081` (or the port shown in your terminal)
 
 ## 👥 Team Members
-- Piriyakorn Srisook 66090500414
-- Wattanasuk Limchanyavong 66090500419
-- Thiraphat Panthong 66090500430
-- Teerapat Paitoon 66090500434
+- Piriyakorn Srisook
+- Wattanasuk Limchanyavong
+- Thiraphat Panthong
+- Teerapat Paitoon
 
 **Advisor:**
 - Dr. Warin Wattanapornprom
