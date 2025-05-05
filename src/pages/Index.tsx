@@ -12,29 +12,29 @@ const Index = () => {
       <div className="relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden">
         {/* Hero background with animated globe effect */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-900/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-800/30 rounded-full blur-xl animate-spin-slow"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px] bg-blue-900/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px] bg-blue-800/30 rounded-full blur-xl animate-spin-slow"></div>
         </div>
         
         {/* Hero content */}
-        <div className="container mx-auto px-4 z-10">
+        <div className="container mx-auto px-2 sm:px-4 z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 leading-tight">
               <span className="inline-block bg-gradient-to-r from-blue-100 to-blue-500 bg-clip-text text-transparent">
                 Globes of History Unveiled
               </span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100/80">
+            <p className="text-lg sm:text-xl md:text-2xl mb-8 text-blue-100/80">
               Explore the pivotal events of World Wars through an interactive 3D globe experience.
             </p>
-            <div className="flex justify-center gap-4">
-              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                 <Link to="/explore">
                   Explore Now
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
                 <Link to="/about">Learn More</Link>
               </Button>
             </div>
@@ -44,8 +44,8 @@ const Index = () => {
       
       {/* Features Section */}
       <section className="py-12 md:py-24">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12 text-center">Features</h2>
+        <div className="container mx-auto px-2 sm:px-4">
+          <h2 className="text-4xl font-bold mb-12 text-center">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="glass-panel p-6 rounded-xl transition-transform duration-300 hover:scale-105">
               <div className="w-12 h-12 flex items-center justify-center bg-blue-900/50 rounded-lg mb-4">
@@ -88,7 +88,7 @@ const Index = () => {
       
       {/* Quote Section */}
       <section className="py-12 bg-accent/30">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-2 sm:px-4">
           <blockquote className="max-w-4xl mx-auto text-center">
             <p className="text-2xl italic mb-4">
               "Those who cannot remember the past are condemned to repeat it."
@@ -100,12 +100,12 @@ const Index = () => {
       
       {/* Call to Action */}
       <section className="py-16 md:py-24 text-center">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-2 sm:px-4">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Explore World History?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-foreground/70">
+          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-foreground/70">
             Dive into our interactive 3D globe and discover the complex web of events that shaped modern history.
           </p>
-          <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+          <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
             <Link to="/explore">Start Exploring</Link>
           </Button>
         </div>
@@ -113,7 +113,7 @@ const Index = () => {
       
       {/* Footer */}
       <footer className="py-8 border-t border-white/10">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-2 sm:px-4">
           <div className="text-center text-sm text-foreground/50">
             <p>© 2025 Globes of History. Educational platform for interactive historical exploration.</p>
             <p className="mt-2">
@@ -121,7 +121,7 @@ const Index = () => {
               <span className="mx-2">•</span>
               <Link to="/about" className="underline hover:text-foreground/80">About</Link>
               <span className="mx-2">•</span>
-              <Link to="/about#contact" className="underline hover:text-foreground/80">Contact</Link>
+              <a href="/about#contact" className="underline hover:text-foreground/80">Contact</a>
             </p>
           </div>
         </div>

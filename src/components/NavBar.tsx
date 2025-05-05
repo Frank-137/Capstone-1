@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Menu } from 'lucide-react';
@@ -52,6 +51,16 @@ const NavBar = () => {
           >
             About
           </NavLink>
+          <NavLink 
+            to="/add-event" 
+            className={({ isActive }) => 
+              isActive
+                ? "text-primary font-medium border-b-2 border-primary py-1"
+                : "text-foreground/70 hover:text-primary transition-colors py-1"
+            }
+          >
+            Add Event
+          </NavLink>
         </nav>
         
         <div className="md:hidden">
@@ -93,6 +102,16 @@ const NavBar = () => {
                   }
                 >
                   About
+                </NavLink>
+                <NavLink 
+                  to="/add-event" 
+                  className={({ isActive }) => 
+                    isActive
+                      ? "text-primary font-medium text-lg"
+                      : "text-foreground/70 hover:text-primary transition-colors text-lg"
+                  }
+                >
+                  Add Event
                 </NavLink>
               </nav>
             </SheetContent>

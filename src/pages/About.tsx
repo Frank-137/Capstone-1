@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GraduationCap } from 'lucide-react';
 
 const About = () => {
   const location = useLocation();
@@ -19,11 +20,18 @@ const About = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <NavBar />
       
-      <main className="flex-1 mt-16 container mx-auto px-4 py-12">
+      <main className="flex-1 mt-16 container mx-auto px-2 sm:px-4 py-12">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold mb-6">About This Project</h1>
           
           <div className="glass-panel p-6 md:p-8 mb-10">
+            <div className="flex items-center gap-3 mb-6 bg-blue-900/20 border border-blue-400/30 rounded-lg p-4">
+              <GraduationCap className="w-7 h-7 text-blue-400 flex-shrink-0" />
+              <span className="text-base md:text-lg font-semibold text-blue-200">
+                This project applies concepts from <span className="text-blue-300">CSS291 (Capstone)</span> and <span className="text-blue-300">CSS241 (AI & ML)</span> to create an interactive historical learning platform.
+              </span>
+            </div>
+            
             <p className="text-lg mb-6">
               Globes of History Unveiled is an interactive educational platform designed to make learning about World Wars and historical events more engaging and comprehensive through data visualization.
             </p>
@@ -126,15 +134,15 @@ const About = () => {
               <Card>
                 <CardContent className="pt-6">
                   <h2 className="text-3xl font-bold mb-6">Team Members</h2>
-                  <ol className="list-decimal list-inside space-y-2 text-lg mb-6">
+                  <ol className="list-decimal list-inside space-y-2 text-lg mb-6 text-center sm:text-left">
                     <li>Piriyakorn Srisook</li>
                     <li>Wattanasuk Limchanyavong</li>
                     <li>Thiraphat Panthong</li>
                     <li>Teerapat Paitoon</li>
                   </ol>
                   <hr className="my-6 border-white/10" />
-                  <h3 className="text-3xl font-bold mb-6">Advisor</h3>
-                  <ul className="list-disc list-inside text-lg mb-6">
+                  <h3 className="text-3xl font-bold mb-6 text-center sm:text-left">Advisor</h3>
+                  <ul className="list-disc list-inside text-lg mb-6 text-center sm:text-left">
                     <li>Dr. Warin Wattanapornprom</li>
                   </ul>
                 </CardContent>

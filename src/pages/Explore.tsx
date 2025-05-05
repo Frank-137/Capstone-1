@@ -77,10 +77,10 @@ const Explore = () => {
     <div className="min-h-screen flex flex-col bg-background overflow-hidden">
       <NavBar />
       
-      <main className="flex-1 mt-16 container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row gap-6">
+      <main className="flex-1 mt-16 container mx-auto px-2 sm:px-4 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Left sidebar */}
-          <div className="w-full md:w-64">
+          <div className="w-full lg:w-64 flex-shrink-0">
             <div className="flex flex-col space-y-4">
               <h2 className="text-2xl font-bold">
                 History Explorer
@@ -98,10 +98,10 @@ const Explore = () => {
           </div>
           
           {/* Main content */}
-          <div className="flex-1 flex flex-col gap-6">
+          <div className="flex-1 flex flex-col gap-6 min-w-0">
             {/* View mode toggle */}
-            <div className="flex justify-between items-center">
-              <Tabs defaultValue="map" className="w-[400px]" onValueChange={(value) => setViewMode(value as 'map' | 'timeline')}>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <Tabs defaultValue="map" className="w-full sm:w-[400px]" onValueChange={(value) => setViewMode(value as 'map' | 'timeline')}>
                 <TabsList className="grid grid-cols-2">
                   <TabsTrigger value="map">Map View</TabsTrigger>
                   <TabsTrigger value="timeline">Timeline View</TabsTrigger>
@@ -112,13 +112,14 @@ const Explore = () => {
                 variant="outline"
                 size="sm"
                 onClick={toggleGraphView}
+                className="w-full sm:w-auto"
               >
                 {showGraph ? 'Hide Relationships' : 'Show Relationships'}
               </Button>
             </div>
             
             {/* Main visualization */}
-            <div className="relative glass-panel border-none rounded-xl overflow-hidden" style={{ height: '60vh' }}>
+            <div className="relative glass-panel border-none rounded-xl overflow-hidden min-h-[300px]" style={{ height: '60vh' }}>
               {viewMode === 'map' && (
                 <Globe 
                   events={historicalEvents}
@@ -128,7 +129,7 @@ const Explore = () => {
               )}
               
               {viewMode === 'timeline' && (
-                <div className="p-6 h-full overflow-y-auto">
+                <div className="p-2 sm:p-6 h-full overflow-y-auto">
                   <h3 className="text-xl font-bold mb-6">Events Timeline</h3>
                   <div className="space-y-8">
                     {filteredEvents
@@ -157,14 +158,14 @@ const Explore = () => {
               
               {/* Relationship graph overlay */}
               {showGraph && (
-                <div className="absolute inset-0 bg-background/90 backdrop-blur-md z-20 p-4">
-                  <div className="flex justify-between items-center mb-4">
+                <div className="absolute inset-0 bg-background/90 backdrop-blur-md z-20 p-4 overflow-auto">
+                  <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
                     <h3 className="text-xl font-bold">Event Relationships</h3>
                     <Button variant="ghost" size="sm" onClick={toggleGraphView}>
                       ×
                     </Button>
                   </div>
-                  <div className="h-[calc(100%-50px)]">
+                  <div className="h-[calc(100%-50px)] min-h-[200px]">
                     <RelationshipGraph 
                       graph={relationshipGraph} 
                       onSelectEvent={handleSelectEvent}
@@ -184,7 +185,7 @@ const Explore = () => {
           </div>
           
           {/* Right sidebar - Event details */}
-          <div className="w-full md:w-96">
+          <div className="w-full lg:w-96 flex-shrink-0">
             {selectedEvent ? (
               <EventDetails 
                 event={selectedEvent}
@@ -192,7 +193,7 @@ const Explore = () => {
                 onSelectEvent={setSelectedEvent}
               />
             ) : (
-              <div className="h-full glass-panel p-6 flex flex-col items-center justify-center text-center">
+              <div className="h-full glass-panel p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-foreground/30 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
