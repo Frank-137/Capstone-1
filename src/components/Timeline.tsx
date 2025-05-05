@@ -65,7 +65,7 @@ const Timeline: React.FC<TimelineProps> = ({ onYearChange, onEventsChange, selec
           
           return nextYear;
         });
-      }, 2000);
+      }, 1000);
     }
     
     return () => {
@@ -97,8 +97,8 @@ const Timeline: React.FC<TimelineProps> = ({ onYearChange, onEventsChange, selec
         />
       </div>
       
-      <div className="relative h-8 w-full overflow-x-auto">
-        <div className="absolute top-0 left-0 right-0 h-full">
+      <div className="relative h-8 w-full">
+        <div className="flex top-0 left-0 right-0 h-full">
           {years.map((y, i) => (
             <React.Fragment key={y}>
               <div 
@@ -107,7 +107,7 @@ const Timeline: React.FC<TimelineProps> = ({ onYearChange, onEventsChange, selec
               />
               {y % 5 === 0 && (
                 <div 
-                  className="timeline-year"
+                  className="timeline-year  mt-9 text-sm"
                   style={{ left: `${(i / (years.length - 1)) * 100}%` }}
                 >
                   {y}
@@ -124,9 +124,9 @@ const Timeline: React.FC<TimelineProps> = ({ onYearChange, onEventsChange, selec
             return (
               <div
                 key={`event-${y}`}
-                className={`absolute w-2 h-2 rounded-full ${y === year ? 'bg-white' : 'bg-white/50'} transform -translate-x-1/2`}
+                className={`absolute w-2 h-2 rounded-full ${y === year ? 'bg-white' : 'bg-white/20'} transform -translate-x-1/2`}
                 style={{ 
-                  left: `${(i / (years.length - 1)) * 100}%`,
+                  left: `${(i / (years.length - 1)) * 101}%`,
                   bottom: '0px'
                 }}
               />
