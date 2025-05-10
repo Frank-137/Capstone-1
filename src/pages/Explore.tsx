@@ -11,6 +11,7 @@ import { createRelationshipGraph } from '@/data/relationships';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
+import { Sparkles, Share2 } from 'lucide-react';
 
 const Explore = () => {
   const [selectedEvent, setSelectedEvent] = useState<HistoricalEvent | null>(null);
@@ -22,6 +23,7 @@ const Explore = () => {
   const [relationshipGraph, setRelationshipGraph] = useState(() => createRelationshipGraph());
   const [showGraph, setShowGraph] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'map' | 'timeline'>('map');
+  const [showSparkle, setShowSparkle] = useState(false);
   
   // Apply filters when period or event types change
   useEffect(() => {
@@ -71,10 +73,14 @@ const Explore = () => {
   // Toggle relationship graph view
   const toggleGraphView = () => {
     setShowGraph(!showGraph);
+    setShowSparkle(true);
+    setTimeout(() => setShowSparkle(false), 1200);
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-background overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+      {/* Animated Gradient Background */}
+      <div className="fixed inset-0 -z-10 animate-gradient-x bg-gradient-to-br from-blue-900 via-pink-700 to-yellow-400 opacity-20 blur-2xl" />
       <NavBar />
       
       <main className="flex-1 mt-16 container mx-auto px-2 sm:px-4 py-6">
@@ -82,7 +88,7 @@ const Explore = () => {
           {/* Left sidebar */}
           <div className="w-full lg:w-64 flex-shrink-0">
             <div className="flex flex-col space-y-4">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">
                 History Explorer
               </h2>
               <p className="text-sm text-foreground/70 mb-4">
@@ -112,68 +118,76 @@ const Explore = () => {
                 variant="outline"
                 size="sm"
                 onClick={toggleGraphView}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto transition-transform duration-200 hover:scale-105 shadow hover:shadow-xl flex items-center gap-2"
               >
+                <Share2 className="w-4 h-4 text-pink-400 animate-wiggle" />
                 {showGraph ? 'Hide Relationships' : 'Show Relationships'}
               </Button>
+              {showSparkle && (
+                <Sparkles className="w-10 h-10 text-yellow-300 absolute right-8 top-0 animate-bounce" />
+              )}
             </div>
             
             {/* Main visualization */}
-            <div className="relative glass-panel border-none rounded-xl overflow-hidden min-h-[300px]" style={{ height: '60vh' }}>
-              {viewMode === 'map' && (
-                <Globe 
-                  events={historicalEvents}
-                  onSelectEvent={handleSelectEvent}
-                  selectedEvent={selectedEvent}
-                />
-              )}
-              
-              {viewMode === 'timeline' && (
-                <div className="p-2 sm:p-6 h-full overflow-y-auto">
-                  <h3 className="text-xl font-bold mb-6">Events Timeline</h3>
-                  <div className="space-y-8">
-                    {filteredEvents
-                      .sort((a, b) => a.date.getTime() - b.date.getTime())
-                      .map(event => (
-                        <div 
-                          key={event.id} 
-                          className={`relative pl-8 border-l-2 ${selectedEvent?.id === event.id ? 'border-primary' : 'border-foreground/20'}`}
-                        >
+            <div className="relative min-h-[300px] flex items-center justify-center" style={{ height: '60vh' }}>
+              {/* Gray gradient background behind the glass-panel */}
+              <div className="absolute inset-0 z-0 rounded-xl bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 opacity-80" />
+              <div className="relative z-10 w-full h-full glass-panel border-none rounded-xl overflow-hidden flex flex-col">
+                {viewMode === 'map' && (
+                  <Globe 
+                    events={historicalEvents}
+                    onSelectEvent={handleSelectEvent}
+                    selectedEvent={selectedEvent}
+                  />
+                )}
+                {viewMode === 'timeline' && (
+                  <div className="p-2 sm:p-6 h-full overflow-y-auto">
+                    <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">Events Timeline</h3>
+                    <div className="space-y-8">
+                      {filteredEvents
+                        .sort((a, b) => a.date.getTime() - b.date.getTime())
+                        .map(event => (
                           <div 
-                            className={`absolute left-[-8px] top-0 w-4 h-4 rounded-full ${selectedEvent?.id === event.id ? 'bg-primary' : 'bg-foreground/20'}`}
-                            onClick={() => handleSelectEvent(event)}
-                          ></div>
-                          <div className="mb-1 text-sm text-foreground/60">
-                            {new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            key={event.id} 
+                            className={`relative pl-8 border-l-2 transition-shadow hover:shadow-lg ${selectedEvent?.id === event.id ? 'border-primary bg-blue-900/10' : 'border-foreground/20'}`}
+                          >
+                            <div 
+                              className={`absolute left-[-8px] top-0 w-4 h-4 rounded-full ${selectedEvent?.id === event.id ? 'bg-primary animate-bounce-x' : 'bg-foreground/20'}`}
+                              onClick={() => handleSelectEvent(event)}
+                            ></div>
+                            <div className="mb-1 text-sm text-foreground/60">
+                              {new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </div>
+                            <h4 className="text-lg font-bold mb-1 hover:text-primary cursor-pointer" onClick={() => handleSelectEvent(event)}>
+                              {event.title}
+                            </h4>
+                            <div className="text-sm">{event.description.substring(0, 120)}...</div>
                           </div>
-                          <h4 className="text-lg font-bold mb-1 hover:text-primary cursor-pointer" onClick={() => handleSelectEvent(event)}>
-                            {event.title}
-                          </h4>
-                          <div className="text-sm">{event.description.substring(0, 120)}...</div>
-                        </div>
-                      ))}
+                        ))}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {/* Relationship graph overlay */}
-              {showGraph && (
-                <div className="absolute inset-0 bg-background/90 backdrop-blur-md z-20 p-4 overflow-auto">
-                  <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
-                    <h3 className="text-xl font-bold">Event Relationships</h3>
-                    <Button variant="ghost" size="sm" onClick={toggleGraphView}>
-                      ×
-                    </Button>
+                )}
+                {/* Relationship graph overlay */}
+                {showGraph && (
+                  <div className="absolute inset-0 bg-background/90 backdrop-blur-md z-20 p-4 overflow-auto">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+                      <h3 className="text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">
+                        <Sparkles className="w-6 h-6 text-yellow-300 animate-bounce" /> Event Relationships
+                      </h3>
+                      <Button variant="ghost" size="sm" onClick={toggleGraphView}>
+                        ×
+                      </Button>
+                    </div>
+                    <div className="h-[calc(100%-50px)] min-h-[200px]">
+                      <RelationshipGraph 
+                        graph={relationshipGraph} 
+                        onSelectEvent={handleSelectEvent}
+                        selectedEventId={selectedEvent?.id || null}
+                      />
+                    </div>
                   </div>
-                  <div className="h-[calc(100%-50px)] min-h-[200px]">
-                    <RelationshipGraph 
-                      graph={relationshipGraph} 
-                      onSelectEvent={handleSelectEvent}
-                      selectedEventId={selectedEvent?.id || null}
-                    />
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             
             {/* Timeline slider */}
@@ -194,10 +208,10 @@ const Explore = () => {
               />
             ) : (
               <div className="h-full glass-panel p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-foreground/30 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-foreground/30 mb-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h3 className="text-xl font-medium mb-2">No Event Selected</h3>
+                <h3 className="text-xl font-medium mb-2 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">No Event Selected</h3>
                 <p className="text-foreground/70">
                   Click on an event pin on the globe or select from the timeline to view details.
                 </p>
@@ -222,6 +236,31 @@ const Explore = () => {
           </div>
         </div>
       </footer>
+      {/* Keyframes for playful animations */}
+      <style>{`
+        @keyframes gradient-x {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient-x {
+          background-size: 200% 200%;
+          animation: gradient-x 8s ease-in-out infinite;
+        }
+        @keyframes bounce-x {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(8px); }
+        }
+        .animate-bounce-x {
+          animation: bounce-x 1.2s infinite;
+        }
+        @keyframes wiggle {
+          0%, 100% { transform: rotate(-8deg); }
+          50% { transform: rotate(8deg); }
+        }
+        .animate-wiggle {
+          animation: wiggle 1.5s infinite;
+        }
+      `}</style>
     </div>
   );
 };

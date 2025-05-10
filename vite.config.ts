@@ -1,13 +1,13 @@
 import { defineConfig } from "vite";
-import react from "vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
-  base: "/Capstone-Update/", // ← ✅ เพิ่มบรรทัดนี้
+  base: "/",
   server: {
     host: "0.0.0.0",
-    port: 8081,
+    port: 5173,
   },
   plugins: [
     react(),

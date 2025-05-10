@@ -85,8 +85,8 @@ const AddEvent = () => {
                   <label className="block text-base font-semibold mb-1">Period</label>
                   <select name="period" value={event.period} onChange={handleChange} className="w-full p-2 rounded bg-muted focus:ring-2 focus:ring-blue-400 transition">
                     <option value="ww1">World War I</option>
-                    <option value="interwar">Interwar</option>
                     <option value="ww2">World War II</option>
+                    <option value="interwar">Interwar</option>
                   </select>
                 </div>
               </div>
