@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { HistoricalEvent } from '@/lib/types';
 import EventPin from './EventPin';
 import { convertGeoToScreenCoord } from '@/lib/utils';
@@ -123,7 +123,7 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
       />
       
       {/* Event Pins */}
-      {isLoaded && events.map(event => (
+      {isLoaded && Array.isArray(events) && events.map(event => (
         <EventPin
           key={event.id}
           event={event}

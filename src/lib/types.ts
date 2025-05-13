@@ -1,11 +1,26 @@
-
 export interface GeoCoordinates {
   lat: number;
   lng: number;
 }
 
-export type EventType = 'battle' | 'treaty' | 'political' | 'economic';
-export type WarPeriod = 'ww1' | 'ww2' | 'interwar';
+export type EventType = 
+  | 'agreements'
+  | 'assassinations'
+  | 'attacks'
+  | 'battles'
+  | 'conferences'
+  | 'declarations'
+  | 'developments'
+  | 'invasions'
+  | 'mutinies'
+  | 'operations'
+  | 'surrender'
+  | 'surrenders'
+  | 'threats'
+  | 'trials'
+  | 'uprisings';
+
+export type WarPeriod = 'wwi' | 'wwii' | 'interwar';
 
 export interface HistoricalEvent {
   id: string;

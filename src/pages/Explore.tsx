@@ -5,73 +5,104 @@ import Timeline from '@/components/Timeline';
 import EventDetails from '@/components/EventDetails';
 import FilterPanel from '@/components/FilterPanel';
 import RelationshipGraph from '@/components/RelationshipGraph';
-import { HistoricalEvent } from '@/lib/types';
-import { historicalEvents, getEventsByPeriod, getEventsByYear, getYearRange } from '@/data/events';
-import { createRelationshipGraph } from '@/data/relationships';
+import { HistoricalEvent, WarPeriod, EventType } from '@/lib/types';
+import { useEvents } from '@/hooks/useEvents';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
 import { Sparkles, Share2 } from 'lucide-react';
+import { createRelationshipGraph } from '@/data/relationships';
 
 const Explore = () => {
   const [selectedEvent, setSelectedEvent] = useState<HistoricalEvent | null>(null);
-  const [filteredEvents, setFilteredEvents] = useState<HistoricalEvent[]>(historicalEvents);
-  const [activePeriod, setActivePeriod] = useState<string | null>(null);
-  const [activeEventTypes, setActiveEventTypes] = useState<string[]>(['battle', 'treaty', 'political', 'economic']);
-  const [selectedYear, setSelectedYear] = useState<number>(getYearRange().min);
-  const [yearEvents, setYearEvents] = useState<HistoricalEvent[]>(getEventsByYear(selectedYear));
-  const [relationshipGraph, setRelationshipGraph] = useState(() => createRelationshipGraph());
+  const [filteredEvents, setFilteredEvents] = useState<HistoricalEvent[]>([]);
+  const [activePeriod, setActivePeriod] = useState<WarPeriod | null>(null);
+  const [activeEventTypes, setActiveEventTypes] = useState<EventType[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number>(1914); // Default to WW1 start
+  const [yearEvents, setYearEvents] = useState<HistoricalEvent[]>([]);
   const [showGraph, setShowGraph] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'map' | 'timeline'>('map');
   const [showSparkle, setShowSparkle] = useState(false);
+  const [relationshipGraph, setRelationshipGraph] = useState(() => createRelationshipGraph());
+
+  // Initialize API hooks
+  const { getFilteredEvents, getLatLonDate } = useEvents();
   
   // Apply filters when period or event types change
   useEffect(() => {
-    // First filter by period
-    let events = getEventsByPeriod(activePeriod);
-    
-    // Then filter by event types
-    if (activeEventTypes.length > 0) {
-      events = events.filter(event => activeEventTypes.includes(event.type));
-    }
-    
-    setFilteredEvents(events);
-  }, [activePeriod, activeEventTypes]);
+    const fetchFilteredEvents = async () => {
+      try {
+        console.log('🔄 Fetching events with filters:', {
+          period: activePeriod,
+          types: activeEventTypes,
+          year: selectedYear
+        });
+
+        const filter = {
+          period: activePeriod,
+          types: activeEventTypes,
+          year: selectedYear
+        };
+        
+        const events = await getFilteredEvents.mutateAsync(filter);
+        setFilteredEvents(events);
+      } catch (error) {
+        console.error('❌ Error fetching filtered events:', error);
+      }
+    };
+
+    fetchFilteredEvents();
+  }, [activePeriod, activeEventTypes, selectedYear]);
   
   // Handle period filter change
-  const handlePeriodChange = (period: string | null) => {
+  const handlePeriodChange = (period: WarPeriod | null) => {
+    console.log('📅 Period changed:', period);
     setActivePeriod(period);
   };
   
   // Handle event type filter change
-  const handleEventTypeChange = (type: string) => {
+  const handleEventTypeChange = (type: EventType) => {
     setActiveEventTypes(prev => {
-      // If type is already active, remove it
-      if (prev.includes(type)) {
-        return prev.filter(t => t !== type);
-      } 
-      // Otherwise add it
-      return [...prev, type];
+      const newTypes = prev.includes(type) 
+        ? prev.filter(t => t !== type)
+        : [...prev, type];
+      
+      console.log('🔍 Event types updated:', {
+        type,
+        action: prev.includes(type) ? 'removed' : 'added',
+        currentTypes: newTypes
+      });
+      
+      return newTypes;
     });
   };
   
   // Handle year change from the timeline
   const handleYearChange = (year: number) => {
+    console.log('📆 Year changed:', year);
     setSelectedYear(year);
   };
   
   // Handle events change from the timeline
   const handleEventsChange = (events: HistoricalEvent[]) => {
+    console.log('📊 Timeline events updated:', events.length, 'events');
     setYearEvents(events);
   };
   
   // Handle selecting an event
   const handleSelectEvent = (event: HistoricalEvent) => {
+    console.log('🎯 Event selected:', {
+      id: event.id,
+      title: event.title,
+      type: event.type,
+      date: event.date
+    });
     setSelectedEvent(event);
   };
   
   // Toggle relationship graph view
   const toggleGraphView = () => {
+    console.log('🔄 Toggling graph view:', !showGraph);
     setShowGraph(!showGraph);
     setShowSparkle(true);
     setTimeout(() => setShowSparkle(false), 1200);
@@ -135,7 +166,7 @@ const Explore = () => {
               <div className="relative z-10 w-full h-full glass-panel border-none rounded-xl overflow-hidden flex flex-col">
                 {viewMode === 'map' && (
                   <Globe 
-                    events={historicalEvents}
+                    events={filteredEvents}
                     onSelectEvent={handleSelectEvent}
                     selectedEvent={selectedEvent}
                   />
