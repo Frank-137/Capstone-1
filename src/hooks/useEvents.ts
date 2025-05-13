@@ -44,7 +44,7 @@ export const useEvents = () => {
       try {
         const response = await api.post('/api/events/filter', filterObject);
         console.log('API Response Data:', response.data);
-        return Array.isArray(response.data) ? response.data : [];
+        return Array.isArray(response.data.data) ? response.data.data : [];
       } catch (error) {
         throw new Error(`Failed to fetch events: ${error}`);
       }

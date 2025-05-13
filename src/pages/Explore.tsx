@@ -1,119 +1,144 @@
-import React, { useState, useEffect } from 'react';
-import NavBar from '@/components/NavBar';
-import Globe from '@/components/Globe';
-import Timeline from '@/components/Timeline';
-import EventDetails from '@/components/EventDetails';
-import FilterPanel from '@/components/FilterPanel';
-import RelationshipGraph from '@/components/RelationshipGraph';
-import { HistoricalEvent, WarPeriod, EventType } from '@/lib/types';
-import { useEvents } from '@/hooks/useEvents';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link } from 'react-router-dom';
-import { Sparkles, Share2 } from 'lucide-react';
-import { createRelationshipGraph } from '@/data/relationships';
+import React, { useState, useEffect } from "react";
+import NavBar from "@/components/NavBar";
+import Globe from "@/components/Globe";
+import Timeline from "@/components/Timeline";
+import EventDetails from "@/components/EventDetails";
+import FilterPanel from "@/components/FilterPanel";
+import RelationshipGraph from "@/components/RelationshipGraph";
+import { HistoricalEvent, WarPeriod, EventType } from "@/lib/types";
+import { useEvents } from "@/hooks/useEvents";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { Sparkles, Share2 } from "lucide-react";
+import { createRelationshipGraph } from "@/data/relationships";
 
 const Explore = () => {
-  const [selectedEvent, setSelectedEvent] = useState<HistoricalEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<HistoricalEvent | null>(
+    null
+  );
   const [filteredEvents, setFilteredEvents] = useState<HistoricalEvent[]>([]);
   const [activePeriod, setActivePeriod] = useState<WarPeriod | null>(null);
   const [activeEventTypes, setActiveEventTypes] = useState<EventType[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(1914); // Default to WW1 start
   const [yearEvents, setYearEvents] = useState<HistoricalEvent[]>([]);
   const [showGraph, setShowGraph] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<'map' | 'timeline'>('map');
+  const [viewMode, setViewMode] = useState<"map" | "timeline">("map");
   const [showSparkle, setShowSparkle] = useState(false);
-  const [relationshipGraph, setRelationshipGraph] = useState(() => createRelationshipGraph());
+  const [relationshipGraph, setRelationshipGraph] = useState(() =>
+    createRelationshipGraph()
+  );
 
   // Initialize API hooks
   const { getFilteredEvents, getLatLonDate } = useEvents();
-  
+
   // Apply filters when period or event types change
   useEffect(() => {
     const fetchFilteredEvents = async () => {
       try {
-        console.log('🔄 Fetching events with filters:', {
+        console.log("🔄 Fetching events with filters:", {
           period: activePeriod,
           types: activeEventTypes,
-          year: selectedYear
+          year: selectedYear,
         });
 
         const filter = {
           period: activePeriod,
           types: activeEventTypes,
-          year: selectedYear
+          year: selectedYear,
         };
-        
+
         const events = await getFilteredEvents.mutateAsync(filter);
-        setFilteredEvents(events);
+        console.log("events:", events); // เพิ่มบรรทัดนี้
+        const eventArray = Array.isArray(events)
+          ? events
+          : (events && typeof events === 'object' && 'data' in events && Array.isArray((events as any).data)
+            ? (events as any).data
+            : []);
+        console.log("eventArray:", eventArray); // เพิ่มบรรทัดนี้
+        setFilteredEvents(
+          eventArray.map((e: any) => ({
+            id: String(e.event_id),
+            title: e.event_name,
+            description: e.description || '',
+            date: new Date(e.date),
+            location: { lat: e.lat, lng: e.lon },
+            lat: e.lat,
+            lon: e.lon,
+            type: Array.isArray(e.tags) && e.tags.length > 0 ? (e.tags[0].split(',')[0].trim() as EventType) : 'battles',
+            period: Array.isArray(e.tags) && e.tags.length > 0 ? (e.tags[0].includes('wwii') ? 'wwii' : 'wwi') : 'wwi',
+            countryCode: undefined,
+            imageUrl: e.image || '',
+          }))
+        );
       } catch (error) {
-        console.error('❌ Error fetching filtered events:', error);
+        console.error("❌ Error fetching filtered events:", error);
       }
     };
 
     fetchFilteredEvents();
   }, [activePeriod, activeEventTypes, selectedYear]);
-  
+
   // Handle period filter change
   const handlePeriodChange = (period: WarPeriod | null) => {
-    console.log('📅 Period changed:', period);
+    console.log("📅 Period changed:", period);
     setActivePeriod(period);
   };
-  
+
   // Handle event type filter change
   const handleEventTypeChange = (type: EventType) => {
-    setActiveEventTypes(prev => {
-      const newTypes = prev.includes(type) 
-        ? prev.filter(t => t !== type)
+    setActiveEventTypes((prev) => {
+      const newTypes = prev.includes(type)
+        ? prev.filter((t) => t !== type)
         : [...prev, type];
-      
-      console.log('🔍 Event types updated:', {
+
+      console.log("🔍 Event types updated:", {
         type,
-        action: prev.includes(type) ? 'removed' : 'added',
-        currentTypes: newTypes
+        action: prev.includes(type) ? "removed" : "added",
+        currentTypes: newTypes,
       });
-      
+
       return newTypes;
     });
   };
-  
+
   // Handle year change from the timeline
   const handleYearChange = (year: number) => {
-    console.log('📆 Year changed:', year);
+    console.log("📆 Year changed:", year);
     setSelectedYear(year);
   };
-  
+
   // Handle events change from the timeline
   const handleEventsChange = (events: HistoricalEvent[]) => {
-    console.log('📊 Timeline events updated:', events.length, 'events');
+    console.log("📊 Timeline events updated:", events.length, "events");
     setYearEvents(events);
   };
-  
+
   // Handle selecting an event
   const handleSelectEvent = (event: HistoricalEvent) => {
-    console.log('🎯 Event selected:', {
+    console.log("🎯 Event selected:", {
       id: event.id,
       title: event.title,
       type: event.type,
-      date: event.date
+      date: event.date,
     });
     setSelectedEvent(event);
   };
-  
+
   // Toggle relationship graph view
   const toggleGraphView = () => {
-    console.log('🔄 Toggling graph view:', !showGraph);
+    console.log("🔄 Toggling graph view:", !showGraph);
     setShowGraph(!showGraph);
     setShowSparkle(true);
     setTimeout(() => setShowSparkle(false), 1200);
   };
-  
+
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
       {/* Animated Gradient Background */}
       <div className="fixed inset-0 -z-10 animate-gradient-x bg-gradient-to-br from-blue-900 via-pink-700 to-yellow-400 opacity-20 blur-2xl" />
       <NavBar />
-      
+
       <main className="flex-1 mt-16 container mx-auto px-2 sm:px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left sidebar */}
@@ -125,7 +150,7 @@ const Explore = () => {
               <p className="text-sm text-foreground/70 mb-4">
                 Explore historical events across time and space.
               </p>
-              <FilterPanel 
+              <FilterPanel
                 activePeriod={activePeriod}
                 onPeriodChange={handlePeriodChange}
                 activeEventTypes={activeEventTypes}
@@ -133,18 +158,24 @@ const Explore = () => {
               />
             </div>
           </div>
-          
+
           {/* Main content */}
           <div className="flex-1 flex flex-col gap-6 min-w-0">
             {/* View mode toggle */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <Tabs defaultValue="map" className="w-full sm:w-[400px]" onValueChange={(value) => setViewMode(value as 'map' | 'timeline')}>
+              <Tabs
+                defaultValue="map"
+                className="w-full sm:w-[400px]"
+                onValueChange={(value) =>
+                  setViewMode(value as "map" | "timeline")
+                }
+              >
                 <TabsList className="grid grid-cols-2">
                   <TabsTrigger value="map">Map View</TabsTrigger>
                   <TabsTrigger value="timeline">Timeline View</TabsTrigger>
                 </TabsList>
               </Tabs>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -152,66 +183,98 @@ const Explore = () => {
                 className="w-full sm:w-auto transition-transform duration-200 hover:scale-105 shadow hover:shadow-xl flex items-center gap-2"
               >
                 <Share2 className="w-4 h-4 text-pink-400 animate-wiggle" />
-                {showGraph ? 'Hide Relationships' : 'Show Relationships'}
+                {showGraph ? "Hide Relationships" : "Show Relationships"}
               </Button>
               {showSparkle && (
                 <Sparkles className="w-10 h-10 text-yellow-300 absolute right-8 top-0 animate-bounce" />
               )}
             </div>
-            
+
             {/* Main visualization */}
-            <div className="relative min-h-[300px] flex items-center justify-center" style={{ height: '60vh' }}>
+            <div
+              className="relative min-h-[300px] flex items-center justify-center"
+              style={{ height: "60vh" }}
+            >
               {/* Gray gradient background behind the glass-panel */}
               <div className="absolute inset-0 z-0 rounded-xl bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 opacity-80" />
               <div className="relative z-10 w-full h-full glass-panel border-none rounded-xl overflow-hidden flex flex-col">
-                {viewMode === 'map' && (
-                  <Globe 
+                {viewMode === "map" ? (
+                  <Globe
                     events={filteredEvents}
                     onSelectEvent={handleSelectEvent}
                     selectedEvent={selectedEvent}
                   />
-                )}
-                {viewMode === 'timeline' && (
+                ) : viewMode === "timeline" ? (
                   <div className="p-2 sm:p-6 h-full overflow-y-auto">
-                    <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">Events Timeline</h3>
+                    <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">
+                      Events Timeline
+                    </h3>
+
                     <div className="space-y-8">
                       {filteredEvents
-                        .sort((a, b) => a.date.getTime() - b.date.getTime())
-                        .map(event => (
-                          <div 
-                            key={event.id} 
-                            className={`relative pl-8 border-l-2 transition-shadow hover:shadow-lg ${selectedEvent?.id === event.id ? 'border-primary bg-blue-900/10' : 'border-foreground/20'}`}
+                        .sort(
+                          (a, b) =>
+                            new Date(a.date).getTime() -
+                            new Date(b.date).getTime()
+                        )
+                        .map((event) => (
+                          <div
+                            key={event.id}
+                            className={`relative pl-8 border-l-2 transition-shadow hover:shadow-lg ${
+                              selectedEvent?.id === event.id
+                                ? "border-primary bg-blue-900/10"
+                                : "border-foreground/20"
+                            }`}
                           >
-                            <div 
-                              className={`absolute left-[-8px] top-0 w-4 h-4 rounded-full ${selectedEvent?.id === event.id ? 'bg-primary animate-bounce-x' : 'bg-foreground/20'}`}
+                            <div
+                              className={`absolute left-[-8px] top-0 w-4 h-4 rounded-full ${
+                                selectedEvent?.id === event.id
+                                  ? "bg-primary animate-bounce-x"
+                                  : "bg-foreground/20"
+                              }`}
                               onClick={() => handleSelectEvent(event)}
                             ></div>
                             <div className="mb-1 text-sm text-foreground/60">
-                              {new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                              {new Date(event.date).toLocaleDateString(
+                                "th-TH",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
                             </div>
-                            <h4 className="text-lg font-bold mb-1 hover:text-primary cursor-pointer" onClick={() => handleSelectEvent(event)}>
+                            <h4
+                              className="text-lg font-bold mb-1 hover:text-primary cursor-pointer"
+                              onClick={() => handleSelectEvent(event)}
+                            >
                               {event.title}
                             </h4>
-                            <div className="text-sm">{event.description.substring(0, 120)}...</div>
                           </div>
                         ))}
                     </div>
                   </div>
-                )}
+                ) : null}
+
                 {/* Relationship graph overlay */}
                 {showGraph && (
                   <div className="absolute inset-0 bg-background/90 backdrop-blur-md z-20 p-4 overflow-auto">
                     <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
                       <h3 className="text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">
-                        <Sparkles className="w-6 h-6 text-yellow-300 animate-bounce" /> Event Relationships
+                        <Sparkles className="w-6 h-6 text-yellow-300 animate-bounce" />{" "}
+                        Event Relationships
                       </h3>
-                      <Button variant="ghost" size="sm" onClick={toggleGraphView}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={toggleGraphView}
+                      >
                         ×
                       </Button>
                     </div>
                     <div className="h-[calc(100%-50px)] min-h-[200px]">
-                      <RelationshipGraph 
-                        graph={relationshipGraph} 
+                      <RelationshipGraph
+                        graph={relationshipGraph}
                         onSelectEvent={handleSelectEvent}
                         selectedEventId={selectedEvent?.id || null}
                       />
@@ -220,31 +283,45 @@ const Explore = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Timeline slider */}
-            <Timeline 
+            <Timeline
               onYearChange={handleYearChange}
               onEventsChange={handleEventsChange}
               selectedYear={selectedYear}
             />
           </div>
-          
+
           {/* Right sidebar - Event details */}
           <div className="w-full lg:w-96 flex-shrink-0">
             {selectedEvent ? (
-              <EventDetails 
+              <EventDetails
                 event={selectedEvent}
                 onClose={() => setSelectedEvent(null)}
                 onSelectEvent={setSelectedEvent}
               />
             ) : (
               <div className="h-full glass-panel p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-foreground/30 mb-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-12 w-12 text-foreground/30 mb-4 animate-bounce"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
-                <h3 className="text-xl font-medium mb-2 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">No Event Selected</h3>
+                <h3 className="text-xl font-medium mb-2 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">
+                  No Event Selected
+                </h3>
                 <p className="text-foreground/70">
-                  Click on an event pin on the globe or select from the timeline to view details.
+                  Click on an event pin on the globe or select from the timeline
+                  to view details.
                 </p>
               </div>
             )}
@@ -256,13 +333,25 @@ const Explore = () => {
       <footer className="py-8 border-t border-white/10">
         <div className="container mx-auto px-4">
           <div className="text-center text-sm text-foreground/50">
-            <p>© 2025 Globes of History. Educational platform for interactive historical exploration.</p>
+            <p>
+              © 2025 Globes of History. Educational platform for interactive
+              historical exploration.
+            </p>
             <p className="mt-2">
-              <Link to="/" className="underline hover:text-foreground/80">Home</Link>
+              <Link to="/" className="underline hover:text-foreground/80">
+                Home
+              </Link>
               <span className="mx-2">•</span>
-              <Link to="/about" className="underline hover:text-foreground/80">About</Link>
+              <Link to="/about" className="underline hover:text-foreground/80">
+                About
+              </Link>
               <span className="mx-2">•</span>
-              <Link to="/about#contact" className="underline hover:text-foreground/80">Contact</Link>
+              <Link
+                to="/about#contact"
+                className="underline hover:text-foreground/80"
+              >
+                Contact
+              </Link>
             </p>
           </div>
         </div>

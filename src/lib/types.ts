@@ -20,7 +20,7 @@ export type EventType =
   | 'trials'
   | 'uprisings';
 
-export type WarPeriod = 'wwi' | 'wwii' | 'interwar';
+export type WarPeriod = 'wwi' | 'wwii';
 
 export interface HistoricalEvent {
   id: string;
@@ -28,6 +28,8 @@ export interface HistoricalEvent {
   description: string;
   date: Date;
   location: GeoCoordinates;
+  lat: number;  // Direct lat coordinate
+  lon: number;  // Direct lon coordinate
   type: EventType;
   period: WarPeriod;
   countryCode?: string;
