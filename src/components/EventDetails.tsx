@@ -1,12 +1,18 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { HistoricalEvent } from '@/lib/types';
-import { getRelatedEvents } from '@/data/relationships';
-import { formatDate } from '@/lib/utils';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { HistoricalEvent } from "@/lib/types";
+import { getRelatedEvents } from "@/data/relationships";
+import { formatDate } from "@/lib/utils";
 
 interface EventDetailsProps {
   event: HistoricalEvent | null;
@@ -14,32 +20,26 @@ interface EventDetailsProps {
   onSelectEvent: (event: HistoricalEvent) => void;
 }
 
-const EventDetails: React.FC<EventDetailsProps> = ({ event, onClose, onSelectEvent }) => {
+const EventDetails: React.FC<EventDetailsProps> = ({
+  event,
+  onClose,
+  onSelectEvent,
+}) => {
   if (!event) return null;
-  
+
   const relatedEvents = getRelatedEvents(event.id);
-  
-  // Determine the event type badge color
-  const getTypeColor = () => {
-    switch (event.type) {
-      case 'battle': return 'bg-globe-event-battle text-white';
-      case 'treaty': return 'bg-globe-event-treaty text-white';
-      case 'political': return 'bg-globe-event-political text-white';
-      case 'economic': return 'bg-globe-event-economic text-white';
-      default: return 'bg-primary text-primary-foreground';
-    }
-  };
-  
-  // Determine the period badge color
+
   const getPeriodColor = () => {
     switch (event.period) {
-      case 'ww1': return 'bg-war-ww1 text-white';
-      case 'ww2': return 'bg-war-ww2 text-white';
-      case 'interwar': return 'bg-gray-600 text-white';
-      default: return 'bg-muted text-muted-foreground';
+      case "wwi":
+        return "bg-war-ww1 text-white";
+      case "wwii":
+        return "bg-war-ww2 text-white";
+      default:
+        return "bg-muted text-muted-foreground";
     }
   };
-  
+
   return (
     <Card className="w-full glass-panel border-none">
       <CardHeader>
@@ -53,21 +53,31 @@ const EventDetails: React.FC<EventDetailsProps> = ({ event, onClose, onSelectEve
           </Button>
         </div>
         <div className="flex flex-wrap gap-2 mt-2">
-          <Badge className={getTypeColor()}>
-            {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-          </Badge>
           <Badge className={getPeriodColor()}>
-            {event.period === 'ww1' ? 'World War I' : 
-             event.period === 'ww2' ? 'World War II' : 'Interwar Period'}
+            {event.period === "wwi"
+              ? "World War I"
+              : event.period === "wwii"
+              ? "World War II"
+              : ""}
           </Badge>
         </div>
+        {/* Add this block to show tags */}
+        {event.tags && event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {event.tags.map((tag, idx) => (
+              <Badge key={idx} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[200px] md:h-[300px] pr-4">
           {event.imageUrl && (
             <div className="mb-4">
-              <img 
-                src={event.imageUrl} 
+              <img
+                src={event.imageUrl}
                 alt={event.title}
                 className="w-full h-40 md:h-60 object-cover rounded-md"
               />
@@ -76,12 +86,12 @@ const EventDetails: React.FC<EventDetailsProps> = ({ event, onClose, onSelectEve
           <p className="text-sm md:text-base leading-relaxed">
             {event.description}
           </p>
-          
+
           {relatedEvents.length > 0 && (
             <div className="mt-6">
               <h4 className="text-sm font-medium mb-2">Related Events:</h4>
               <div className="space-y-2">
-                {relatedEvents.map(relatedEvent => (
+                {relatedEvents.map((relatedEvent) => (
                   <button
                     key={relatedEvent.id}
                     onClick={() => onSelectEvent(relatedEvent)}
@@ -100,7 +110,8 @@ const EventDetails: React.FC<EventDetailsProps> = ({ event, onClose, onSelectEve
       </CardContent>
       <CardFooter className="flex justify-between border-t border-white/10 pt-4">
         <div className="text-xs text-muted-foreground">
-          Location: {event.location.lat.toFixed(2)}°, {event.location.lng.toFixed(2)}°
+          Location: {event.location.lat.toFixed(2)}°,{" "}
+          {event.location.lng.toFixed(2)}°
         </div>
         <Button variant="secondary" size="sm" onClick={onClose}>
           Close

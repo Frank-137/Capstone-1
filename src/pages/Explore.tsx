@@ -20,7 +20,7 @@ const Explore = () => {
   const [filteredEvents, setFilteredEvents] = useState<HistoricalEvent[]>([]);
   const [activePeriod, setActivePeriod] = useState<WarPeriod | null>(null);
   const [activeEventTypes, setActiveEventTypes] = useState<EventType[]>([]);
-  const [selectedYear, setSelectedYear] = useState<number>(1914); // Default to WW1 start
+  const [selectedYear, setSelectedYear] = useState<number>(); // Default undefined
   const [yearEvents, setYearEvents] = useState<HistoricalEvent[]>([]);
   const [showGraph, setShowGraph] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"map" | "timeline">("map");
@@ -42,34 +42,73 @@ const Explore = () => {
           year: selectedYear,
         });
 
-        const filter = {
+        // สร้าง filter object แบบ dynamic
+        const filter: any = {
           period: activePeriod,
           types: activeEventTypes,
-          year: selectedYear,
         };
+        if (selectedYear !== undefined) {
+          filter.year = selectedYear;
+        }
 
         const events = await getFilteredEvents.mutateAsync(filter);
-        console.log("events:", events); // เพิ่มบรรทัดนี้
+        console.log("events:", events);
         const eventArray = Array.isArray(events)
           ? events
-          : (events && typeof events === 'object' && 'data' in events && Array.isArray((events as any).data)
-            ? (events as any).data
-            : []);
-        console.log("eventArray:", eventArray); // เพิ่มบรรทัดนี้
+          : events &&
+            typeof events === "object" &&
+            "data" in events &&
+            Array.isArray((events as any).data)
+          ? (events as any).data
+          : [];
+        console.log("eventArray:", eventArray);
         setFilteredEvents(
-          eventArray.map((e: any) => ({
-            id: String(e.event_id),
-            title: e.event_name,
-            description: e.description || '',
-            date: new Date(e.date),
-            location: { lat: e.lat, lng: e.lon },
-            lat: e.lat,
-            lon: e.lon,
-            type: Array.isArray(e.tags) && e.tags.length > 0 ? (e.tags[0].split(',')[0].trim() as EventType) : 'battles',
-            period: Array.isArray(e.tags) && e.tags.length > 0 ? (e.tags[0].includes('wwii') ? 'wwii' : 'wwi') : 'wwi',
-            countryCode: undefined,
-            imageUrl: e.image || '',
-          }))
+          eventArray.map((e: any) => {
+            // Split all tags by comma and trim
+            const rawTags = Array.isArray(e.tags) ? e.tags : [];
+            const allTags = rawTags
+              .flatMap((tagStr) => tagStr.split(","))
+              .map((tag) => tag.trim())
+              .filter((tag) => tag.length > 0);
+
+            const eventTypeList: EventType[] = [
+              "agreements",
+              "assassinations",
+              "attacks",
+              "battles",
+              "conferences",
+              "declarations",
+              "developments",
+              "invasions",
+              "mutinies",
+              "operations",
+              "surrender",
+              "surrenders",
+              "threats",
+              "trials",
+              "uprisings",
+            ];
+            const eventType =
+              (allTags.find((tag) =>
+                eventTypeList.includes(tag)
+              ) as EventType) || "";
+            const period = allTags.includes("ww2") ? "ww2" : "ww1";
+
+            return {
+              id: String(e.event_id),
+              title: e.event_name,
+              description: e.description || "",
+              date: new Date(e.date),
+              location: { lat: e.lat, lng: e.lon },
+              lat: e.lat,
+              lon: e.lon,
+              type: eventType,
+              period: period,
+              tags: allTags, // <-- Add this line
+              countryCode: undefined,
+              imageUrl: e.image || "",
+            };
+          })
         );
       } catch (error) {
         console.error("❌ Error fetching filtered events:", error);
@@ -236,7 +275,7 @@ const Explore = () => {
                             ></div>
                             <div className="mb-1 text-sm text-foreground/60">
                               {new Date(event.date).toLocaleDateString(
-                                "th-TH",
+                                "us-US",
                                 {
                                   year: "numeric",
                                   month: "long",

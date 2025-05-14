@@ -19,17 +19,17 @@ export const useEvents = () => {
 
       // Convert period and event types to tags
       const tags: string[] = [];
-      
+
       // Add period as tag if exists
-      if (filter.period) {
+      if (filter.period) {  
         tags.push(filter.period);
       }
-      
+
       // Add event types as tags
       if (filter.types.length > 0) {
         tags.push(...filter.types);
       }
-      
+
       // Add tag filter if there are any tags
       if (tags.length > 0) {
         filterObject.tag_filter = { tags };

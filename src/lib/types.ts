@@ -34,6 +34,7 @@ export interface HistoricalEvent {
   period: WarPeriod;
   countryCode?: string;
   imageUrl?: string;
+  tags?: string[];
 }
 
 export interface EventRelationship {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { getYearRange, getEventsByYear } from '@/data/events';
@@ -35,6 +34,12 @@ const Timeline: React.FC<TimelineProps> = ({ onYearChange, onEventsChange, selec
   
   // Toggle play/pause timeline animation
   const togglePlay = () => {
+    if (!isPlaying && (selectedYear === undefined || year === undefined)) {
+      setYear(yearRange.min);
+      onYearChange(yearRange.min);
+      const yearEvents = getEventsByYear(yearRange.min);
+      onEventsChange(yearEvents);
+    }
     setIsPlaying(prev => !prev);
   };
   
