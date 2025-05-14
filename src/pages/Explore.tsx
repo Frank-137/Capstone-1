@@ -70,7 +70,7 @@ const Explore = () => {
               .flatMap((tagStr) => tagStr.split(","))
               .map((tag) => tag.trim())
               .filter((tag) => tag.length > 0);
-
+        
             const eventTypeList: EventType[] = [
               "agreements",
               "assassinations",
@@ -93,18 +93,21 @@ const Explore = () => {
                 eventTypeList.includes(tag)
               ) as EventType) || "";
             const period = allTags.includes("ww2") ? "ww2" : "ww1";
-
+        
             return {
               id: String(e.event_id),
               title: e.event_name,
               description: e.description || "",
               date: new Date(e.date),
-              location: { lat: e.lat, lng: e.lon },
-              lat: e.lat,
-              lon: e.lon,
+              location: { 
+                lat: Number(e.lat),   // <-- แปลงเป็นตัวเลข
+                lng: Number(e.lon)    // <-- แปลงเป็นตัวเลข
+              },
+              lat: Number(e.lat),     // <-- แปลงเป็นตัวเลข
+              lon: Number(e.lon),     // <-- แปลงเป็นตัวเลข
               type: eventType,
               period: period,
-              tags: allTags, // <-- Add this line
+              tags: allTags,
               countryCode: undefined,
               imageUrl: e.image || "",
             };

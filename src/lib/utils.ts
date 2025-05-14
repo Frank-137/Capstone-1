@@ -1,4 +1,3 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -23,18 +22,14 @@ export function formatDate(date: Date, short: boolean = false): string {
 
 // Convert geographical coordinates to screen coordinates
 export function convertGeoToScreenCoord(lat: number, lng: number) {
-  // Implementation is a simplified version just for demonstration
-  // In a real app, this would use the globe's actual projection and orientation
-  
-  const phi = (90 - lat) * (Math.PI / 180); // Convert to radians
+  const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lng + 180) * (Math.PI / 180);
   
-  // Simulate 3D to 2D projection
-  // In a real implementation, this would use the actual 3D globe's projection
-  const x = -Math.sin(phi) * Math.cos(theta);
-  const z = Math.sin(phi) * Math.sin(theta);
+  // Use 3D projection calculation
+  const x = Math.cos(phi) * Math.cos(theta);
+  const y = Math.cos(phi) * Math.sin(theta);
+  const z = Math.sin(phi);
   
-  // Get the container dimensions
   const container = document.querySelector('canvas')?.parentElement;
   if (!container) return { x: 0, y: 0, visible: false };
   
@@ -43,13 +38,14 @@ export function convertGeoToScreenCoord(lat: number, lng: number) {
   const centerX = width / 2;
   const centerY = height / 2;
   
-  // Convert to screen coordinates
-  const screenX = centerX + x * (width * 0.45);
-  const screenY = centerY + z * (height * 0.45);
+  // Adjust scale factor
+  const scale = Math.min(width, height) * 0.4;
   
-  // Check if the point is on the visible side of the globe
-  // This is a simplified check - in a real app it would be more complex
-  const visible = Math.sin(phi) * Math.cos(theta) <= 0.2;
+  const screenX = centerX + x * scale;
+  const screenY = centerY + y * scale;
+  
+  // Improved visibility check
+  const visible = z > -0.1; // Point is visible when on the front side
   
   return { x: screenX, y: screenY, visible };
 }
