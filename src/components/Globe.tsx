@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { HistoricalEvent } from '@/lib/types';
+import React, { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { HistoricalEvent } from "@/lib/types";
 
 interface GlobeProps {
   events: HistoricalEvent[];
@@ -11,7 +11,11 @@ interface GlobeProps {
   selectedEvent?: HistoricalEvent | null;
 }
 
-const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) => {
+const Globe: React.FC<GlobeProps> = ({
+  events,
+  onSelectEvent,
+  selectedEvent,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -19,12 +23,14 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
   const controlsRef = useRef<OrbitControls | null>(null);
   const globeRef = useRef<THREE.Mesh | null>(null);
   const [hoveredPin, setHoveredPin] = useState<string | null>(null);
+  // Add refs to store camera position and rotation
+  const cameraPositionRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 2));
+  const cameraRotationRef = useRef<THREE.Euler>(new THREE.Euler(0, 0, 0));
 
-  // Helper: Convert lat/lng to 3D coordinates
-  const latLngToVector3 = (lat: number, lng: number, radius = 1.01) => {
+  // Helper: Convert lat/lng to 3D coordinates (geographic)
+  const latLngToVector3 = (lat: number, lng: number, radius = 1.011) => {
     const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lng + 180) * (Math.PI / 180);
-
+    const theta = (- lng + 180) * (Math.PI / 180);
     return new THREE.Vector3(
       radius * Math.sin(phi) * Math.cos(theta),
       radius * Math.cos(phi),
@@ -46,12 +52,17 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
       0.1,
       1000
     );
-    camera.position.z = 2;
+    // Use stored position and rotation
+    camera.position.copy(cameraPositionRef.current);
+    camera.rotation.copy(cameraRotationRef.current);
     cameraRef.current = camera;
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    renderer.setSize(
+      containerRef.current.clientWidth,
+      containerRef.current.clientHeight
+    );
     renderer.setPixelRatio(window.devicePixelRatio);
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -62,25 +73,41 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
 
-    // Load Earth texture
-    const textureLoader = new THREE.TextureLoader();
-    const earthTexture = textureLoader.load('/textures/earth.jpg');
-    const bumpMap = textureLoader.load('/textures/earth-bump.jpg');
-    const specularMap = textureLoader.load('/textures/earth-specular.jpg');
-
-    // Create Globe
+    // Create Globe (พื้นหลัง)
     const geometry = new THREE.SphereGeometry(1, 64, 64);
     const material = new THREE.MeshPhongMaterial({
-      map: earthTexture,
-      bumpMap: bumpMap,
-      bumpScale: 0.05,
-      specularMap: specularMap,
-      specular: new THREE.Color('grey'),
-      shininess: 5
+      color: 0x222244, // สีพื้นหลัง globe
+      shininess: 5,
     });
     const globe = new THREE.Mesh(geometry, material);
     globeRef.current = globe;
     scene.add(globe);
+
+    // วาดเส้นขอบทวีปจาก GeoJSON
+    fetch("/custom.geo.json")
+      .then((res) => res.json())
+      .then((geojson) => {
+        geojson.features.forEach((feature: any) => {
+          // รองรับทั้ง Polygon และ MultiPolygon
+          const coordsArr = feature.geometry.type === "Polygon"
+            ? [feature.geometry.coordinates]
+            : feature.geometry.coordinates;
+          coordsArr.forEach((polygon: any) => {
+            polygon.forEach((ring: any) => {
+              const points: THREE.Vector3[] = ring.map(
+                ([lng, lat]: [number, number]) =>
+                  latLngToVector3(lat, lng, 1.012)
+              );
+              const geometry = new THREE.BufferGeometry().setFromPoints(points);
+              const line = new THREE.Line(
+                geometry,
+                new THREE.LineBasicMaterial({ color: 0xcccccc })
+              );
+              scene.add(line);
+            });
+          });
+        });
+      });
 
     // OrbitControls
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -89,59 +116,75 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
     controls.minDistance = 1.5;
     controls.maxDistance = 3;
     controls.maxPolarAngle = Math.PI;
+    controls.minAzimuthAngle = -Math.PI;
+    controls.maxAzimuthAngle = Math.PI;
+    controls.autoRotate = false;
+    controls.enablePan = false;
+    controls.rotateSpeed = 0.5;
+    controls.enableZoom = true;
+    controls.zoomSpeed = 0.5;
     controlsRef.current = controls;
+
+    // Store camera position and rotation when they change
+    const updateCameraPosition = () => {
+      if (cameraRef.current) {
+        cameraPositionRef.current.copy(cameraRef.current.position);
+        cameraRotationRef.current.copy(cameraRef.current.rotation);
+      }
+    };
+    controls.addEventListener("change", updateCameraPosition);
 
     // Create Pin Group
     const pinGroup = new THREE.Group();
     scene.add(pinGroup);
-    
+
     // Create Pins
-    events.forEach(event => {
+    events.forEach((event) => {
       const position = latLngToVector3(event.location.lat, event.location.lng);
-      
-      // Pin base (cone with wider base and taller height)
-      const pinGeometry = new THREE.ConeGeometry(0.015, 0.06, 12);
-      
+
+      // Pin base (cone with smaller base and height)
+      const pinGeometry = new THREE.ConeGeometry(0.012, 0.045, 12);
+
       // Determine pin color based on selected state
       const isSelected = selectedEvent?.id === event.id;
       const baseColor = isSelected ? 0xffcc00 : 0xff4500; // Orange-red for normal, gold for selected
-      
+
       // Create pin material with emissive properties
       const pinMaterial = new THREE.MeshPhongMaterial({
         color: baseColor,
         emissive: baseColor,
         emissiveIntensity: isSelected ? 0.7 : 0.3,
-        shininess: 30
+        shininess: 30,
       });
-      
+
       const pin = new THREE.Mesh(pinGeometry, pinMaterial);
       pin.position.copy(position);
       pin.lookAt(0, 0, 0);
       pin.rotateX(Math.PI); // Rotate so tip points outward
-      
+
       // Add glowing halo effect for selected pin
       if (isSelected) {
-        const haloGeometry = new THREE.SphereGeometry(0.025, 16, 16);
+        const haloGeometry = new THREE.SphereGeometry(0.02, 16, 16);
         const haloMaterial = new THREE.MeshBasicMaterial({
           color: 0xffff00,
           transparent: true,
-          opacity: 0.4
+          opacity: 0.4,
         });
         const halo = new THREE.Mesh(haloGeometry, haloMaterial);
         pin.add(halo);
       }
-      
+
       // Create small sphere on top of pin
-      const pinTopGeometry = new THREE.SphereGeometry(0.012, 12, 12);
+      const pinTopGeometry = new THREE.SphereGeometry(0.009, 12, 12);
       const pinTopMaterial = new THREE.MeshPhongMaterial({
         color: isSelected ? 0xffffff : 0xffcc00,
         emissive: isSelected ? 0xffffff : 0xffcc00,
         emissiveIntensity: 0.5,
-        shininess: 50
+        shininess: 50,
       });
-      
+
       const pinTop = new THREE.Mesh(pinTopGeometry, pinTopMaterial);
-      pinTop.position.set(0, -0.035, 0); // Position on top of pin
+      pinTop.position.set(0, -0.027, 0); // Position on top of pin
       pin.add(pinTop);
 
       // Store metadata
@@ -182,31 +225,31 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
 
       raycaster.setFromCamera(mouse, cameraRef.current);
       const intersects = raycaster.intersectObjects(pinGroup.children);
-      
+
       if (intersects.length > 0) {
         const hovered = intersects[0].object as any;
         if (hovered.eventId) {
-          document.body.style.cursor = 'pointer';
+          document.body.style.cursor = "pointer";
           setHoveredPin(hovered.eventId);
-          
+
           // Scale up the hovered pin
           const pin = pinGroup.children.find(
             (p: any) => p.eventId === hovered.eventId
           ) as THREE.Mesh;
-          
+
           if (pin && pin.scale.x < 1.3) {
             pin.scale.set(1.3, 1.3, 1.3);
           }
         }
       } else {
-        document.body.style.cursor = 'auto';
-        
+        document.body.style.cursor = "auto";
+
         // Reset any previously hovered pin
         if (hoveredPin) {
           const pin = pinGroup.children.find(
             (p: any) => p.eventId === hoveredPin
           ) as THREE.Mesh;
-          
+
           if (pin) {
             pin.scale.set(1, 1, 1);
           }
@@ -215,26 +258,26 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
       }
     };
 
-    renderer.domElement.addEventListener('click', onClick);
-    renderer.domElement.addEventListener('mousemove', onMouseMove);
+    renderer.domElement.addEventListener("click", onClick);
+    renderer.domElement.addEventListener("mousemove", onMouseMove);
 
     // Reset cursor when mouse leaves the canvas
     const onMouseLeave = () => {
-      document.body.style.cursor = 'auto';
+      document.body.style.cursor = "auto";
       // Reset any hovered pin
       if (hoveredPin) {
         const pin = pinGroup.children.find(
           (p: any) => p.eventId === hoveredPin
         ) as THREE.Mesh;
-        
+
         if (pin) {
           pin.scale.set(1, 1, 1);
         }
         setHoveredPin(null);
       }
     };
-    
-    renderer.domElement.addEventListener('mouseleave', onMouseLeave);
+
+    renderer.domElement.addEventListener("mouseleave", onMouseLeave);
 
     // Resize
     const handleResize = () => {
@@ -246,7 +289,7 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Animate
     const animate = () => {
@@ -258,10 +301,11 @@ const Globe: React.FC<GlobeProps> = ({ events, onSelectEvent, selectedEvent }) =
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
-      renderer.domElement.removeEventListener('click', onClick);
-      renderer.domElement.removeEventListener('mousemove', onMouseMove);
-      renderer.domElement.removeEventListener('mouseleave', onMouseLeave);
+      window.removeEventListener("resize", handleResize);
+      renderer.domElement.removeEventListener("click", onClick);
+      renderer.domElement.removeEventListener("mousemove", onMouseMove);
+      renderer.domElement.removeEventListener("mouseleave", onMouseLeave);
+      controls.removeEventListener("change", updateCameraPosition);
       if (containerRef.current && renderer.domElement) {
         containerRef.current.removeChild(renderer.domElement);
       }
