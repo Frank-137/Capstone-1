@@ -30,11 +30,10 @@ const Globe: React.FC<GlobeProps> = ({
   const controlsRef = useRef<OrbitControls | null>(null);
   const globeRef = useRef<THREE.Mesh | null>(null);
   const [hoveredPin, setHoveredPin] = useState<string | null>(null);
-  // Add refs to store camera position and rotation
+
   const cameraPositionRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 2));
   const cameraRotationRef = useRef<THREE.Euler>(new THREE.Euler(0, 0, 0));
 
-  // Helper: Convert lat/lng to 3D coordinates (geographic)
   const latLngToVector3 = (lat: number, lng: number, radius = 1.011) => {
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (-lng + 180) * (Math.PI / 180);
@@ -59,7 +58,7 @@ const Globe: React.FC<GlobeProps> = ({
       0.1,
       1000
     );
-    // Use stored position and rotation
+
     camera.position.copy(cameraPositionRef.current);
     camera.rotation.copy(cameraRotationRef.current);
     cameraRef.current = camera;
@@ -83,7 +82,7 @@ const Globe: React.FC<GlobeProps> = ({
     // Create Globe (พื้นหลัง)
     const geometry = new THREE.SphereGeometry(1, 64, 64);
     const material = new THREE.MeshPhongMaterial({
-      color: 0x222244, // สีพื้นหลัง globe
+      color: 0x222244, 
       shininess: 5,
     });
     const globe = new THREE.Mesh(geometry, material);
@@ -123,9 +122,6 @@ const Globe: React.FC<GlobeProps> = ({
     controls.dampingFactor = 0.05;
     controls.minDistance = 1.5;
     controls.maxDistance = 3;
-    controls.maxPolarAngle = Math.PI;
-    controls.minAzimuthAngle = -Math.PI;
-    controls.maxAzimuthAngle = Math.PI;
     controls.autoRotate = false;
     controls.enablePan = false;
     controls.rotateSpeed = 0.5;
@@ -142,7 +138,6 @@ const Globe: React.FC<GlobeProps> = ({
     };
     controls.addEventListener("change", updateCameraPosition);
 
-    // เพิ่มฟังก์ชันคำนวณ viewport
     const calculateViewport = () => {
       if (!cameraRef.current) return;
 
@@ -174,7 +169,6 @@ const Globe: React.FC<GlobeProps> = ({
         west: lon - (width / 2) * (180 / Math.PI),
       };
 
-      // ตรวจสอบและปรับค่าให้อยู่ในช่วงที่ถูกต้อง
       viewport.north = Math.min(90, Math.max(-90, viewport.north));
       viewport.south = Math.min(90, Math.max(-90, viewport.south));
       viewport.east = ((viewport.east + 180) % 360) - 180;
@@ -183,7 +177,6 @@ const Globe: React.FC<GlobeProps> = ({
       onViewportChange(viewport);
     };
 
-    // เพิ่ม event listener สำหรับการเปลี่ยนแปลง viewport
     controls.addEventListener("change", calculateViewport);
 
     // Create Pin Group
@@ -212,7 +205,7 @@ const Globe: React.FC<GlobeProps> = ({
       const pin = new THREE.Mesh(pinGeometry, pinMaterial);
       pin.position.copy(position);
       pin.lookAt(0, 0, 0);
-      pin.rotateX(Math.PI); // Rotate so tip points outward
+      pin.rotateX(Math.PI);
 
       // Add glowing halo effect for selected pin
       if (isSelected) {
@@ -236,7 +229,7 @@ const Globe: React.FC<GlobeProps> = ({
       });
 
       const pinTop = new THREE.Mesh(pinTopGeometry, pinTopMaterial);
-      pinTop.position.set(0, -0.027, 0); // Position on top of pin
+      pinTop.position.set(0, -0.027, 0);
       pin.add(pinTop);
 
       // Store metadata
@@ -284,7 +277,6 @@ const Globe: React.FC<GlobeProps> = ({
           document.body.style.cursor = "pointer";
           setHoveredPin(hovered.eventId);
 
-          // Scale up the hovered pin
           const pin = pinGroup.children.find(
             (p: any) => p.eventId === hovered.eventId
           ) as THREE.Mesh;
@@ -296,7 +288,6 @@ const Globe: React.FC<GlobeProps> = ({
       } else {
         document.body.style.cursor = "auto";
 
-        // Reset any previously hovered pin
         if (hoveredPin) {
           const pin = pinGroup.children.find(
             (p: any) => p.eventId === hoveredPin
@@ -313,17 +304,15 @@ const Globe: React.FC<GlobeProps> = ({
     renderer.domElement.addEventListener("click", onClick);
     renderer.domElement.addEventListener("mousemove", onMouseMove);
 
-    // Reset cursor when mouse leaves the canvas
     const onMouseLeave = () => {
       document.body.style.cursor = "auto";
-      // Reset any hovered pin
       if (hoveredPin) {
         const pin = pinGroup.children.find(
           (p: any) => p.eventId === hoveredPin
         ) as THREE.Mesh;
 
         if (pin) {
-          pin.scale.set(0.8, 0.8, 0.8);
+          pin.scale.set(0.8, 0.8, 1);
         }
         setHoveredPin(null);
       }

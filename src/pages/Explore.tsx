@@ -37,8 +37,7 @@ const Explore = () => {
   });
   
 
-  // Initialize API hooks
-  const { getFilteredEvents, getLatLonDate } = useEvents();
+  const { getFilteredEvents } = useEvents();
 
   // สร้าง debounced version ของ handleViewportChange
   const debouncedViewportChange = useCallback(
@@ -50,7 +49,7 @@ const Explore = () => {
     }) => {
       console.log('Viewport changed (debounced):', newViewport);
       setViewport(newViewport);
-    }, 500), // รอ 500ms หลังจากหยุดหมุน
+    }, 50),
     []
   );
 
@@ -86,6 +85,9 @@ const Explore = () => {
             Array.isArray((events as any).data)
           ? (events as any).data
           : [];
+
+        console.log("📦 Final eventArray (before mapping):", eventArray);
+          
         setFilteredEvents(
           eventArray.map((e: any) => {
             // Split all tags by comma and trim
@@ -381,7 +383,7 @@ const Explore = () => {
               <div className="h-full glass-panel p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 text-foreground/30 mb-4 animate-bounce"
+                  className="h-12 w-12 text-foreground/30 mb-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

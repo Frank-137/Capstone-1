@@ -22,14 +22,14 @@ export interface Cluster {
   centroid_lon: number;
   centroid_time_days: number;
   level: number;
-  event_ids: number[]; // ตามตัวอย่าง event_ids เป็น number (เช่น 101, 102) แก้จาก string[] เป็น number[]
+  event_ids: number[]; 
   min_lat: number | null;
   max_lat: number | null;
   min_lon: number | null;
   max_lon: number | null;
   min_date: string | null;
   max_date: string | null;
-  events?: HistoricalEvent[]; // เพิ่ม events เข้าไปใน Cluster
+  events?: HistoricalEvent[];
   point_count?: number;
   radius?: number;
   bounds?: {
@@ -44,13 +44,11 @@ export interface Cluster {
   is_partially_visible?: boolean;
 }
 
-// API Response type ใหม่ที่มี events กับ clusters ซ้อนกัน
 interface ClusterResponse {
   status: string;
-  data: Cluster[]; // data เป็น array ของ Cluster ตาม JSON ตัวอย่าง
+  data: Cluster[];
 }
 
-// Utility functions
 const calculateClusterBounds = (cluster: Cluster) => {
   const width = (cluster.max_lon ?? 0) - (cluster.min_lon ?? 0);
   const height = (cluster.max_lat ?? 0) - (cluster.min_lat ?? 0);
@@ -149,38 +147,33 @@ export const useEvents = () => {
           console.log("Events in first cluster:", clusters[0].events);
         }
 
-        // ตรวจว่าข้อมูลถูกต้อง
+
         if (!Array.isArray(clusters)) {
           throw new Error(
             "Clusters data is missing or invalid in the API response"
           );
         }
 
-        /// แปลง clusters ทีละตัว
-        return clusters.map((cluster) => {
+        return clusters.flatMap((cluster) => {
           const bounds = calculateClusterBounds(cluster);
           const timeSpan = calculateTimeSpan(cluster);
-
-          return {
+        
+          const enrichedCluster = {
             ...cluster,
             point_count: cluster.event_ids.length,
             radius: bounds.area
-              ? Math.sqrt((cluster.event_ids.length * bounds.area) / Math.PI) *
-                50
+              ? Math.sqrt((cluster.event_ids.length * bounds.area) / Math.PI) * 50
               : Math.sqrt(cluster.event_ids.length) * 50,
             bounds,
             time_span: timeSpan,
-            is_fully_visible: isClusterFullyInViewport(
-              cluster,
-              filter.viewport
-            ),
-            is_partially_visible: isClusterPartiallyInViewport(
-              cluster,
-              filter.viewport
-            ),
-            events: cluster.events ?? [], // ⭐️ รวม events ด้วย
+            is_fully_visible: isClusterFullyInViewport(cluster, filter.viewport),
+            is_partially_visible: isClusterPartiallyInViewport(cluster, filter.viewport),
+            events: cluster.events ?? [],
           };
-        });
+        
+          return enrichedCluster.events;
+        });        
+
       } catch (error) {
         throw new Error(`Failed to fetch clusters: ${error}`);
       }
