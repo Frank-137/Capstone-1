@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import NavBar from "@/components/NavBar";
 import Globe from "@/components/Globe";
 import Timeline from "@/components/Timeline";
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { Sparkles, Share2 } from "lucide-react";
 import { createRelationshipGraph } from "@/data/relationships";
+import debounce from 'lodash/debounce';
 
 const Explore = () => {
   const [selectedEvent, setSelectedEvent] = useState<HistoricalEvent | null>(
@@ -28,9 +29,30 @@ const Explore = () => {
   const [relationshipGraph, setRelationshipGraph] = useState(() =>
     createRelationshipGraph()
   );
+  const [viewport, setViewport] = useState({
+    north: 80,
+    south: 20,
+    east: 60,
+    west: -40
+  });
+  
 
   // Initialize API hooks
   const { getFilteredEvents, getLatLonDate } = useEvents();
+
+  // สร้าง debounced version ของ handleViewportChange
+  const debouncedViewportChange = useCallback(
+    debounce((newViewport: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+    }) => {
+      console.log('Viewport changed (debounced):', newViewport);
+      setViewport(newViewport);
+    }, 500), // รอ 500ms หลังจากหยุดหมุน
+    []
+  );
 
   // Apply filters when period or event types change
   useEffect(() => {
@@ -40,6 +62,7 @@ const Explore = () => {
           period: activePeriod,
           types: activeEventTypes,
           year: selectedYear,
+          viewport: viewport,
         });
 
         // สร้าง filter object แบบ dynamic
@@ -50,9 +73,11 @@ const Explore = () => {
         if (selectedYear !== undefined) {
           filter.year = selectedYear;
         }
+        if (viewport) {
+          filter.viewport = viewport;
+        }
 
         const events = await getFilteredEvents.mutateAsync(filter);
-        console.log("events:", events);
         const eventArray = Array.isArray(events)
           ? events
           : events &&
@@ -61,7 +86,6 @@ const Explore = () => {
             Array.isArray((events as any).data)
           ? (events as any).data
           : [];
-        console.log("eventArray:", eventArray);
         setFilteredEvents(
           eventArray.map((e: any) => {
             // Split all tags by comma and trim
@@ -119,7 +143,7 @@ const Explore = () => {
     };
 
     fetchFilteredEvents();
-  }, [activePeriod, activeEventTypes, selectedYear]);
+  }, [activePeriod, activeEventTypes, selectedYear, viewport]);
 
   // Handle period filter change
   const handlePeriodChange = (period: WarPeriod | null) => {
@@ -173,6 +197,16 @@ const Explore = () => {
     setShowGraph(!showGraph);
     setShowSparkle(true);
     setTimeout(() => setShowSparkle(false), 1200);
+  };
+
+  // Handle viewport change from Globe
+  const handleViewportChange = (newViewport: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  }) => {
+    debouncedViewportChange(newViewport);
   };
 
   return (
@@ -245,6 +279,7 @@ const Explore = () => {
                     events={filteredEvents}
                     onSelectEvent={handleSelectEvent}
                     selectedEvent={selectedEvent}
+                    onViewportChange={handleViewportChange}
                   />
                 ) : viewMode === "timeline" ? (
                   <div className="p-2 sm:p-6 h-full overflow-y-auto">

@@ -9,12 +9,19 @@ interface GlobeProps {
   events: HistoricalEvent[];
   onSelectEvent: (event: HistoricalEvent) => void;
   selectedEvent?: HistoricalEvent | null;
+  onViewportChange: (viewport: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  }) => void;
 }
 
 const Globe: React.FC<GlobeProps> = ({
   events,
   onSelectEvent,
   selectedEvent,
+  onViewportChange,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -30,7 +37,7 @@ const Globe: React.FC<GlobeProps> = ({
   // Helper: Convert lat/lng to 3D coordinates (geographic)
   const latLngToVector3 = (lat: number, lng: number, radius = 1.011) => {
     const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (- lng + 180) * (Math.PI / 180);
+    const theta = (-lng + 180) * (Math.PI / 180);
     return new THREE.Vector3(
       radius * Math.sin(phi) * Math.cos(theta),
       radius * Math.cos(phi),
@@ -89,9 +96,10 @@ const Globe: React.FC<GlobeProps> = ({
       .then((geojson) => {
         geojson.features.forEach((feature: any) => {
           // รองรับทั้ง Polygon และ MultiPolygon
-          const coordsArr = feature.geometry.type === "Polygon"
-            ? [feature.geometry.coordinates]
-            : feature.geometry.coordinates;
+          const coordsArr =
+            feature.geometry.type === "Polygon"
+              ? [feature.geometry.coordinates]
+              : feature.geometry.coordinates;
           coordsArr.forEach((polygon: any) => {
             polygon.forEach((ring: any) => {
               const points: THREE.Vector3[] = ring.map(
@@ -133,6 +141,50 @@ const Globe: React.FC<GlobeProps> = ({
       }
     };
     controls.addEventListener("change", updateCameraPosition);
+
+    // เพิ่มฟังก์ชันคำนวณ viewport
+    const calculateViewport = () => {
+      if (!cameraRef.current) return;
+
+      const camera = cameraRef.current;
+      const distance = camera.position.length();
+      const fov = camera.fov;
+      const aspect = camera.aspect;
+
+      // คำนวณ viewport จาก camera position
+      const position = camera.position;
+      const vFov = (fov * Math.PI) / 180;
+      const height = 2 * Math.tan(vFov / 2) * distance;
+      const width = height * aspect;
+
+      // แปลง position เป็น lat/lon bounds
+      const lat =
+        90 -
+        Math.atan2(
+          position.y,
+          Math.sqrt(position.x * position.x + position.z * position.z)
+        ) *
+          (180 / Math.PI);
+      const lon = Math.atan2(position.z, position.x) * (180 / Math.PI);
+
+      const viewport = {
+        north: lat + (height / 2) * (180 / Math.PI),
+        south: lat - (height / 2) * (180 / Math.PI),
+        east: lon + (width / 2) * (180 / Math.PI),
+        west: lon - (width / 2) * (180 / Math.PI),
+      };
+
+      // ตรวจสอบและปรับค่าให้อยู่ในช่วงที่ถูกต้อง
+      viewport.north = Math.min(90, Math.max(-90, viewport.north));
+      viewport.south = Math.min(90, Math.max(-90, viewport.south));
+      viewport.east = ((viewport.east + 180) % 360) - 180;
+      viewport.west = ((viewport.west + 180) % 360) - 180;
+
+      onViewportChange(viewport);
+    };
+
+    // เพิ่ม event listener สำหรับการเปลี่ยนแปลง viewport
+    controls.addEventListener("change", calculateViewport);
 
     // Create Pin Group
     const pinGroup = new THREE.Group();
@@ -271,7 +323,7 @@ const Globe: React.FC<GlobeProps> = ({
         ) as THREE.Mesh;
 
         if (pin) {
-          pin.scale.set(1, 1, 1);
+          pin.scale.set(0.8, 0.8, 0.8);
         }
         setHoveredPin(null);
       }
@@ -293,9 +345,18 @@ const Globe: React.FC<GlobeProps> = ({
 
     // Animate
     const animate = () => {
+      if (
+        !controlsRef.current ||
+        !rendererRef.current ||
+        !sceneRef.current ||
+        !cameraRef.current
+      ) {
+        return;
+      }
+
       requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+      controlsRef.current.update();
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
     };
     animate();
 
@@ -305,13 +366,14 @@ const Globe: React.FC<GlobeProps> = ({
       renderer.domElement.removeEventListener("click", onClick);
       renderer.domElement.removeEventListener("mousemove", onMouseMove);
       renderer.domElement.removeEventListener("mouseleave", onMouseLeave);
-      controls.removeEventListener("change", updateCameraPosition);
+      controls.removeEventListener("change", calculateViewport);
+
       if (containerRef.current && renderer.domElement) {
         containerRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
-  }, [events, selectedEvent, hoveredPin]);
+  }, [events, selectedEvent, hoveredPin, onViewportChange]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">

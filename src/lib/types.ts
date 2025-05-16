@@ -26,7 +26,7 @@ export interface HistoricalEvent {
   id: string;
   title: string;
   description: string;
-  date: Date;
+  date: string;
   location: GeoCoordinates;
   lat: number;  // Direct lat coordinate
   lon: number;  // Direct lon coordinate
@@ -62,4 +62,20 @@ export interface RelationshipLink {
 export interface RelationshipGraph {
   nodes: RelationshipNode[];
   links: RelationshipLink[];
+}
+
+// API Request Types
+export interface DateFilterRequest {
+  year?: number;
+}
+
+export interface TagFilterRequest {
+  tags: string[];
+}
+
+export interface ViewportRequest {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
 }
