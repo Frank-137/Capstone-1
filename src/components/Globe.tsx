@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { HistoricalEvent } from "@/lib/types";
+import debounce from 'lodash/debounce';
 
 interface GlobeProps {
   events: HistoricalEvent[];
@@ -30,6 +31,16 @@ const Globe: React.FC<GlobeProps> = ({
   const controlsRef = useRef<OrbitControls | null>(null);
   const globeRef = useRef<THREE.Mesh | null>(null);
   const [hoveredPin, setHoveredPin] = useState<string | null>(null);
+  const geoJsonCacheRef = useRef<any>(null);
+  const viewportCacheRef = useRef<Map<string, HistoricalEvent[]>>(new Map());
+  const lastViewportRef = useRef<{
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  } | null>(null);
+  const eventCacheRef = useRef<Map<string, HistoricalEvent[]>>(new Map());
+  const pinGroupRef = useRef<THREE.Group | null>(null);
 
   const cameraPositionRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 2));
   const cameraRotationRef = useRef<THREE.Euler>(new THREE.Euler(0, 0, 0));
@@ -43,6 +54,157 @@ const Globe: React.FC<GlobeProps> = ({
       radius * Math.sin(phi) * Math.sin(theta)
     );
   };
+
+  // Function to load and cache GeoJSON data
+  const loadGeoJson = async () => {
+    if (geoJsonCacheRef.current) return geoJsonCacheRef.current;
+    
+    try {
+      const response = await fetch("/custom.geo.json");
+      const data = await response.json();
+      geoJsonCacheRef.current = data;
+      return data;
+    } catch (error) {
+      console.error("Error loading GeoJSON:", error);
+      return null;
+    }
+  };
+
+  // Function to draw continent borders
+  const drawContinentBorders = (geojson: any) => {
+    if (!sceneRef.current) return;
+
+    geojson.features.forEach((feature: any) => {
+      const coordsArr =
+        feature.geometry.type === "Polygon"
+          ? [feature.geometry.coordinates]
+          : feature.geometry.coordinates;
+      coordsArr.forEach((polygon: any) => {
+        polygon.forEach((ring: any) => {
+          const points: THREE.Vector3[] = ring.map(
+            ([lng, lat]: [number, number]) =>
+              latLngToVector3(lat, lng, 1.012)
+          );
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const line = new THREE.Line(
+            geometry,
+            new THREE.LineBasicMaterial({ color: 0xcccccc })
+          );
+          sceneRef.current?.add(line);
+        });
+      });
+    });
+  };
+
+  // Function to create a pin for an event
+  const createPin = (event: HistoricalEvent, scene: THREE.Scene) => {
+    const position = latLngToVector3(event.location.lat, event.location.lng);
+    const isSelected = selectedEvent?.id === event.id;
+    const baseColor = isSelected ? 0xffcc00 : 0xff4500;
+
+    // Pin base
+    const pinGeometry = new THREE.ConeGeometry(0.012, 0.045, 12);
+    const pinMaterial = new THREE.MeshPhongMaterial({
+      color: baseColor,
+      emissive: baseColor,
+      emissiveIntensity: isSelected ? 0.7 : 0.3,
+      shininess: 30,
+    });
+
+    const pin = new THREE.Mesh(pinGeometry, pinMaterial);
+    pin.position.copy(position);
+    pin.lookAt(0, 0, 0);
+    pin.rotateX(Math.PI);
+
+    // Add halo for selected pin
+    if (isSelected) {
+      const haloGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+      const haloMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffff00,
+        transparent: true,
+        opacity: 0.4,
+      });
+      const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+      pin.add(halo);
+    }
+
+    // Pin top
+    const pinTopGeometry = new THREE.SphereGeometry(0.009, 12, 12);
+    const pinTopMaterial = new THREE.MeshPhongMaterial({
+      color: isSelected ? 0xffffff : 0xffcc00,
+      emissive: isSelected ? 0xffffff : 0xffcc00,
+      emissiveIntensity: 0.5,
+      shininess: 50,
+    });
+
+    const pinTop = new THREE.Mesh(pinTopGeometry, pinTopMaterial);
+    pinTop.position.set(0, -0.027, 0);
+    pin.add(pinTop);
+
+    // Store metadata
+    (pin as any).eventData = event;
+    (pin as any).eventId = event.id;
+
+    return pin;
+  };
+
+  // Function to update pins based on events
+  const updatePins = useCallback((events: HistoricalEvent[], scene: THREE.Scene) => {
+    // Remove existing pin group if it exists
+    if (pinGroupRef.current) {
+      scene.remove(pinGroupRef.current);
+    }
+
+    // Create new pin group
+    const pinGroup = new THREE.Group();
+    pinGroupRef.current = pinGroup;
+    scene.add(pinGroup);
+
+    // Create pins for each event
+    events.forEach(event => {
+      const pin = createPin(event, scene);
+      pinGroup.add(pin);
+    });
+  }, [selectedEvent]);
+
+  // Create a debounced version of onViewportChange with event caching
+  const debouncedViewportChange = useCallback(
+    debounce((viewport: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+    }) => {
+      const viewportKey = `${viewport.north},${viewport.south},${viewport.east},${viewport.west}`;
+      
+      // Check if we have cached events for this viewport
+      if (eventCacheRef.current.has(viewportKey)) {
+        const cachedEvents = eventCacheRef.current.get(viewportKey);
+        if (cachedEvents && sceneRef.current) {
+          updatePins(cachedEvents, sceneRef.current);
+          return;
+        }
+      }
+
+      // Only trigger viewport change if it's significantly different
+      if (lastViewportRef.current) {
+        const threshold = 5;
+        const isSignificantlyDifferent = 
+          Math.abs(lastViewportRef.current.north - viewport.north) > threshold ||
+          Math.abs(lastViewportRef.current.south - viewport.south) > threshold ||
+          Math.abs(lastViewportRef.current.east - viewport.east) > threshold ||
+          Math.abs(lastViewportRef.current.west - viewport.west) > threshold;
+
+        if (!isSignificantlyDifferent) {
+          return;
+        }
+      }
+
+      lastViewportRef.current = viewport;
+      onViewportChange(viewport);
+    }, 500),
+    [onViewportChange, updatePins]
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -79,54 +241,30 @@ const Globe: React.FC<GlobeProps> = ({
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
 
-    // Create Globe (พื้นหลัง)
+    // Create Globe
     const geometry = new THREE.SphereGeometry(1, 64, 64);
     const material = new THREE.MeshPhongMaterial({
-      color: 0x222244, 
+      color: 0x222244,
       shininess: 5,
     });
     const globe = new THREE.Mesh(geometry, material);
     globeRef.current = globe;
     scene.add(globe);
 
-    // วาดเส้นขอบทวีปจาก GeoJSON
-    fetch("/custom.geo.json")
-      .then((res) => res.json())
-      .then((geojson) => {
-        geojson.features.forEach((feature: any) => {
-          // รองรับทั้ง Polygon และ MultiPolygon
-          const coordsArr =
-            feature.geometry.type === "Polygon"
-              ? [feature.geometry.coordinates]
-              : feature.geometry.coordinates;
-          coordsArr.forEach((polygon: any) => {
-            polygon.forEach((ring: any) => {
-              const points: THREE.Vector3[] = ring.map(
-                ([lng, lat]: [number, number]) =>
-                  latLngToVector3(lat, lng, 1.012)
-              );
-              const geometry = new THREE.BufferGeometry().setFromPoints(points);
-              const line = new THREE.Line(
-                geometry,
-                new THREE.LineBasicMaterial({ color: 0xcccccc })
-              );
-              scene.add(line);
-            });
-          });
-        });
-      });
+    // Load and draw GeoJSON
+    loadGeoJson().then(drawContinentBorders);
 
-    // OrbitControls
+    // OrbitControls with improved smoothness
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    controls.dampingFactor = 0.1;
     controls.minDistance = 1.5;
     controls.maxDistance = 3;
     controls.autoRotate = false;
     controls.enablePan = false;
-    controls.rotateSpeed = 0.5;
+    controls.rotateSpeed = 0.3; 
     controls.enableZoom = true;
-    controls.zoomSpeed = 0.5;
+    controls.zoomSpeed = 0.3;
     controlsRef.current = controls;
 
     // Store camera position and rotation when they change
@@ -146,13 +284,11 @@ const Globe: React.FC<GlobeProps> = ({
       const fov = camera.fov;
       const aspect = camera.aspect;
 
-      // คำนวณ viewport จาก camera position
       const position = camera.position;
       const vFov = (fov * Math.PI) / 180;
       const height = 2 * Math.tan(vFov / 2) * distance;
       const width = height * aspect;
 
-      // แปลง position เป็น lat/lon bounds
       const lat =
         90 -
         Math.atan2(
@@ -174,70 +310,18 @@ const Globe: React.FC<GlobeProps> = ({
       viewport.east = ((viewport.east + 180) % 360) - 180;
       viewport.west = ((viewport.west + 180) % 360) - 180;
 
-      onViewportChange(viewport);
+      debouncedViewportChange(viewport);
     };
 
     controls.addEventListener("change", calculateViewport);
 
     // Create Pin Group
     const pinGroup = new THREE.Group();
+    pinGroupRef.current = pinGroup;
     scene.add(pinGroup);
 
-    // Create Pins
-    events.forEach((event) => {
-      const position = latLngToVector3(event.location.lat, event.location.lng);
-
-      // Pin base (cone with smaller base and height)
-      const pinGeometry = new THREE.ConeGeometry(0.012, 0.045, 12);
-
-      // Determine pin color based on selected state
-      const isSelected = selectedEvent?.id === event.id;
-      const baseColor = isSelected ? 0xffcc00 : 0xff4500; // Orange-red for normal, gold for selected
-
-      // Create pin material with emissive properties
-      const pinMaterial = new THREE.MeshPhongMaterial({
-        color: baseColor,
-        emissive: baseColor,
-        emissiveIntensity: isSelected ? 0.7 : 0.3,
-        shininess: 30,
-      });
-
-      const pin = new THREE.Mesh(pinGeometry, pinMaterial);
-      pin.position.copy(position);
-      pin.lookAt(0, 0, 0);
-      pin.rotateX(Math.PI);
-
-      // Add glowing halo effect for selected pin
-      if (isSelected) {
-        const haloGeometry = new THREE.SphereGeometry(0.02, 16, 16);
-        const haloMaterial = new THREE.MeshBasicMaterial({
-          color: 0xffff00,
-          transparent: true,
-          opacity: 0.4,
-        });
-        const halo = new THREE.Mesh(haloGeometry, haloMaterial);
-        pin.add(halo);
-      }
-
-      // Create small sphere on top of pin
-      const pinTopGeometry = new THREE.SphereGeometry(0.009, 12, 12);
-      const pinTopMaterial = new THREE.MeshPhongMaterial({
-        color: isSelected ? 0xffffff : 0xffcc00,
-        emissive: isSelected ? 0xffffff : 0xffcc00,
-        emissiveIntensity: 0.5,
-        shininess: 50,
-      });
-
-      const pinTop = new THREE.Mesh(pinTopGeometry, pinTopMaterial);
-      pinTop.position.set(0, -0.027, 0);
-      pin.add(pinTop);
-
-      // Store metadata
-      (pin as any).eventData = event;
-      (pin as any).eventId = event.id;
-
-      pinGroup.add(pin);
-    });
+    // Update pins with initial events
+    updatePins(events, scene);
 
     // Add raycaster for interactivity
     const raycaster = new THREE.Raycaster();
@@ -356,13 +440,17 @@ const Globe: React.FC<GlobeProps> = ({
       renderer.domElement.removeEventListener("mousemove", onMouseMove);
       renderer.domElement.removeEventListener("mouseleave", onMouseLeave);
       controls.removeEventListener("change", calculateViewport);
+      debouncedViewportChange.cancel(); 
 
       if (containerRef.current && renderer.domElement) {
         containerRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      if (pinGroupRef.current) {
+        scene.remove(pinGroupRef.current);
+      }
     };
-  }, [events, selectedEvent, hoveredPin, onViewportChange]);
+  }, [events, selectedEvent, hoveredPin, onViewportChange, debouncedViewportChange, updatePins]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">

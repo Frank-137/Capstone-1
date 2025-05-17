@@ -55,10 +55,15 @@ const Timeline: React.FC<TimelineProps> = ({ onYearChange, onEventsChange, selec
     if (isPlaying) {
       playIntervalRef.current = setInterval(() => {
         setYear(currentYear => {
-          const nextYear = currentYear + 1;
+          let nextYear = currentYear + 1;
           
-          // If we reach the end, stop playing
-          if (nextYear > yearRange.max) {
+          // Skip years between wars
+          if (nextYear > 1920 && nextYear < 1939) {
+            nextYear = 1939;
+          }
+          
+          // If we reach the end of WW2, stop playing
+          if (nextYear > 1945) {
             setIsPlaying(false);
             return currentYear;
           }
@@ -70,7 +75,7 @@ const Timeline: React.FC<TimelineProps> = ({ onYearChange, onEventsChange, selec
           
           return nextYear;
         });
-      }, 1000);
+      }, 2000);
     }
     
     return () => {

@@ -4,7 +4,6 @@ import Globe from "@/components/Globe";
 import Timeline from "@/components/Timeline";
 import EventDetails from "@/components/EventDetails";
 import FilterPanel from "@/components/FilterPanel";
-import RelationshipGraph from "@/components/RelationshipGraph";
 import { HistoricalEvent, WarPeriod, EventType } from "@/lib/types";
 import { useEvents } from "@/hooks/useEvents";
 import { Button } from "@/components/ui/button";
@@ -23,12 +22,7 @@ const Explore = () => {
   const [activeEventTypes, setActiveEventTypes] = useState<EventType[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(); // Default undefined
   const [yearEvents, setYearEvents] = useState<HistoricalEvent[]>([]);
-  const [showGraph, setShowGraph] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"map" | "timeline">("map");
-  const [showSparkle, setShowSparkle] = useState(false);
-  const [relationshipGraph, setRelationshipGraph] = useState(() =>
-    createRelationshipGraph()
-  );
   const [viewport, setViewport] = useState({
     north: 80,
     south: 20,
@@ -193,14 +187,6 @@ const Explore = () => {
     setSelectedEvent(event);
   };
 
-  // Toggle relationship graph view
-  const toggleGraphView = () => {
-    console.log("🔄 Toggling graph view:", !showGraph);
-    setShowGraph(!showGraph);
-    setShowSparkle(true);
-    setTimeout(() => setShowSparkle(false), 1200);
-  };
-
   // Handle viewport change from Globe
   const handleViewportChange = (newViewport: {
     north: number;
@@ -253,19 +239,6 @@ const Explore = () => {
                   <TabsTrigger value="timeline">Timeline View</TabsTrigger>
                 </TabsList>
               </Tabs>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleGraphView}
-                className="w-full sm:w-auto transition-transform duration-200 hover:scale-105 shadow hover:shadow-xl flex items-center gap-2"
-              >
-                <Share2 className="w-4 h-4 text-pink-400 animate-wiggle" />
-                {showGraph ? "Hide Relationships" : "Show Relationships"}
-              </Button>
-              {showSparkle && (
-                <Sparkles className="w-10 h-10 text-yellow-300 absolute right-8 top-0 animate-bounce" />
-              )}
             </div>
 
             {/* Main visualization */}
@@ -334,32 +307,6 @@ const Explore = () => {
                     </div>
                   </div>
                 ) : null}
-
-                {/* Relationship graph overlay */}
-                {showGraph && (
-                  <div className="absolute inset-0 bg-background/90 backdrop-blur-md z-20 p-4 overflow-auto">
-                    <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
-                      <h3 className="text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent animate-gradient-x">
-                        <Sparkles className="w-6 h-6 text-yellow-300 animate-bounce" />{" "}
-                        Event Relationships
-                      </h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={toggleGraphView}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                    <div className="h-[calc(100%-50px)] min-h-[200px]">
-                      <RelationshipGraph
-                        graph={relationshipGraph}
-                        onSelectEvent={handleSelectEvent}
-                        selectedEventId={selectedEvent?.id || null}
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
