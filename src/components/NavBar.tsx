@@ -16,7 +16,7 @@ const NavBar = () => {
               <div className="absolute inset-2 rounded-full bg-blue-700"></div>
               <div className="absolute inset-[10px] rounded-full bg-blue-900"></div>
             </div>
-            <span className="hidden sm:block">Globes of History</span>
+            <span className="hidden sm:block">HistoriScope 3D</span>
           </NavLink>
         </div>
         
@@ -50,16 +50,6 @@ const NavBar = () => {
             }
           >
             About
-          </NavLink>
-          <NavLink 
-            to="/add-event" 
-            className={({ isActive }) => 
-              isActive
-                ? "text-primary font-medium border-b-2 border-primary py-1"
-                : "text-foreground/70 hover:text-primary transition-colors py-1"
-            }
-          >
-            Add Event
           </NavLink>
         </nav>
         
@@ -102,16 +92,6 @@ const NavBar = () => {
                   }
                 >
                   About
-                </NavLink>
-                <NavLink 
-                  to="/add-event" 
-                  className={({ isActive }) => 
-                    isActive
-                      ? "text-primary font-medium text-lg"
-                      : "text-foreground/70 hover:text-primary transition-colors text-lg"
-                  }
-                >
-                  Add Event
                 </NavLink>
               </nav>
             </SheetContent>

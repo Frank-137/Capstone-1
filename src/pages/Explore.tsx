@@ -360,7 +360,7 @@ const Explore = () => {
         <div className="container mx-auto px-4">
           <div className="text-center text-sm text-foreground/50">
             <p>
-              © 2025 Globes of History. Educational platform for interactive
+              © 2025 HistoriScope 3D. Educational platform for interactive
               historical exploration.
             </p>
             <p className="mt-2">

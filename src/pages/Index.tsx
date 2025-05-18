@@ -34,7 +34,7 @@ const Index = () => {
         <div className="container mx-auto px-2 sm:px-4 z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 leading-tight bg-gradient-to-r from-blue-200 via-pink-200 to-yellow-300 bg-clip-text text-transparent animate-gradient-x">
-              Globes of History Unveiled <span className="inline-block align-middle"></span>
+              HistoriScope 3D <span className="inline-block align-middle"></span>
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl mb-8 text-blue-100/80">
               Explore the pivotal events of World Wars through an interactive 3D globe experience.
@@ -122,7 +122,7 @@ const Index = () => {
       <footer className="py-8 border-t border-white/10">
         <div className="container mx-auto px-2 sm:px-4">
           <div className="text-center text-sm text-foreground/50">
-            <p>© 2025 Globes of History. Educational platform for interactive historical exploration.</p>
+            <p>© 2025 HistoriScope 3D. Educational platform for interactive historical exploration.</p>
             <p className="mt-2">
               <Link to="/" className="underline hover:text-foreground/80">Home</Link>
               <span className="mx-2">•</span>

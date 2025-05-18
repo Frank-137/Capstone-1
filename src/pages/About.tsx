@@ -33,7 +33,7 @@ const About = () => {
             </div>
             
             <p className="text-lg mb-6">
-              Globes of History Unveiled is an interactive educational platform designed to make learning about World Wars and historical events more engaging and comprehensive through data visualization.
+              HistoriScope 3D is an interactive educational platform designed to make learning about World Wars and historical events more engaging and comprehensive through data visualization.
             </p>
             
             <p className="text-lg mb-6">
@@ -165,7 +165,7 @@ const About = () => {
       <footer className="py-8 border-t border-white/10">
         <div className="container mx-auto px-4">
           <div className="text-center text-sm text-foreground/50">
-            <p>© 2025 Globes of History. Educational platform for interactive historical exploration.</p>
+            <p>© 2025 HistoriScope 3D. Educational platform for interactive historical exploration.</p>
             <p className="mt-2">
               <Link to="/" className="underline hover:text-foreground/80">Home</Link>
               <span className="mx-2">•</span>
